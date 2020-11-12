@@ -229,50 +229,81 @@ export class ControlsComponent implements OnInit {
         this.socketEmit('binary', 'False');
       }
 
-      if (
-        this.controllers[index].axes[0] !==
-          this.prevControllers[index].axes[0] &&
-	Math.abs(this.controllers[index].axes[0]) > 0.15 && 
-	Math.abs(this.controllers[index].axes[0]) >
-          Math.abs(this.controllers[index].axes[1])
-      ) {
-        this.socketEmit('movement', 'turn', this.controllers[index].axes[0]);
-      } else if (
-        this.controllers[index].axes[1] !==
-          this.prevControllers[index].axes[1] &&
-        Math.abs(this.controllers[index].axes[1]) > 0.15 &&
-	Math.abs(this.controllers[index].axes[1]) >
-          Math.abs(this.controllers[index].axes[0])
-      ) {
-        this.socketEmit(
-          'movement',
-          'straight',
-          this.controllers[index].axes[1] * -1
-        );
-      } else if (
-        (this.controllers[index].axes[1] !==
-          this.prevControllers[index].axes[1] ||
-          this.controllers[index].axes[0] !==
-            this.prevControllers[index].axes[0]) &&
-        this.controllers[index].axes[0] === 0 &&
-        this.controllers[index].axes[1] === 0
-      ) {
-        this.socketEmit('stop');
+      let movementChange: boolean = false;
+
+      for (let i: number = 12; i <= 15; i++) {
+        if (
+          !this.controllers[index].buttons[i] &&
+          this.controllers[index].buttons[i] !=
+            this.prevControllers[index].buttons[i]
+        ) {
+          movementChange = true;
+        }
+      }
+
+      if (movementChange) {
+        for (let i: number = 12; i <= 15; i++) {
+          if (
+            this.controllers[index].buttons[i] &&
+            this.controllers[index].buttons[i] !=
+              this.prevControllers[index].buttons[i]
+          ) {
+            switch (i) {
+              case 12: {
+                this.socketEmit('movement', 'straight', this.slider / 100);
+                break;
+              }
+              case 13: {
+                this.socketEmit(
+                  'movement',
+                  'straight',
+                  (this.slider / 100) * -1
+                );
+                break;
+              }
+              case 14: {
+                this.socketEmit('movement', 'turn', (this.slider / 100) * -1);
+                break;
+              }
+              case 15: {
+                this.socketEmit('movement', 'turn', this.slider / 100);
+                break;
+              }
+              default: {
+                console.log('something failed!');
+                break;
+              }
+            }
+
+            break;
+          }
+        }
       }
 
       if (
-        this.controllers[index].axes[2] !==
-          this.prevControllers[index].axes[2] &&
-	Math.abs(this.controllers[index].axes[2]) > 0.15 &&
-	this.controllers[index].axes[2]
+        this.controllers[index].axes[2] !== this.prevControllers[index].axes[2]
       ) {
-        this.socketEmit('camera', 'x', this.controllers[index].axes[2]);
+        if (this.controllers[index].axes[2]) {
+          this.socketEmit('camera', 'x', this.controllers[index].axes[2]);
+        } else {
+          this.socketEmit('stopCam', 'x');
+        }
+      }
+
+      if (
+        this.controllers[index].axes[3] !== this.prevControllers[index].axes[3]
+      ) {
+        if (this.controllers[index].axes[3]) {
+          this.socketEmit('camera', 'y', this.controllers[index].axes[3]);
+        } else {
+          this.socketEmit('stopCam', 'y');
+        }
       }
 
       if (
         this.controllers[index].axes[3] !==
-	  this.prevControllers[index].axes[3] &&
-	Math.abs(this.controllers[index].axes[3]) > 0.15 &&
+          this.prevControllers[index].axes[3] &&
+        Math.abs(this.controllers[index].axes[3]) > 0.15 &&
         this.controllers[index].axes[3]
       ) {
         this.socketEmit('camera', 'y', this.controllers[index].axes[2] * -1);
@@ -297,14 +328,14 @@ export class ControlsComponent implements OnInit {
     });
   }
 
-  socketEmit(channel: string, command?: string, args?: Number) {
+  socketEmit(channel: string, command?: string, args?: Number | String) {
     if (channel === 'stop') {
       this.socket.emit(channel);
     } else if (channel === 'binary') {
       this.socket.emit(channel, command);
     } else if (channel === 'stopCam') {
-    	this.socket.emit(channel, command);
-	console.log('stopCam')
+      this.socket.emit(channel, command);
+      console.log('stopCam');
     } else if (channel === 'speed') {
       this.socket.emit(channel, this.slider / 100); //does it really need this info
     } else if (command) {
