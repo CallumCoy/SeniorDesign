@@ -1,26 +1,30 @@
 # pylint: disable=bare-except
 """to stop pylint from complainign about any excepts"""
-
-from signal import signal, SIGINT
-
+import os
 import time
 import math
-import sys
 import _thread
 
 import Jetson.GPIO as GPIO
 import Adafruit_PCA9685
 
 
-def handler(_signalRecieved, _frame):
-    print("exiting with grace")
+def handler(_signalRecieved='', _frame=''):
+    print("Closing robot with grace")
 
     safeNumber = 7
+    GPIO.setmode(GPIO.BOARD)
     GPIO.output(safeNumber, GPIO.HIGH)
 
     GPIO.cleanup()
 
-    sys.exit(0)
+
+def stopRobot():
+    print("halting robot")
+
+    safeNumber = 7
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.output(safeNumber, GPIO.HIGH)
 
 
 class Robot:
@@ -83,8 +87,6 @@ class Robot:
 
     def setupBot(self):
 
-        #signal(SIGINT, handler)
-
         GPIO.setmode(GPIO.BOARD)
 
         GPIO.setup(self.safeNumber, GPIO.OUT)
@@ -137,6 +139,7 @@ class Robot:
         try:
             self.leftMotor.rotate(value)
             self.rightMotor.rotate(value)
+            GPIO.output(self. safeNumber, GPIO.LOW)
         except:
             print("failed to move")
             self.stopMotor()
@@ -145,6 +148,7 @@ class Robot:
         try:
             self.leftMotor.rotate(value)
             self.rightMotor.rotate(value * -1)
+            GPIO.output(self. safeNumber, GPIO.LOW)
         except:
             print("failed to move")
             self.stopMotor()
@@ -154,8 +158,10 @@ class Robot:
             distance1 = self.leftMotor.stop()
             distance2 = self.rightMotor.stop()
 
+            distance = (distance1 + distance2) / 2
+
             print(distance)
-            print(math.pi * 2 * 0.5 * distance)
+            print(math.pi * 2 * os.environ['WHEEL_RADIUS'] * distance)
         except:
             print("failed to stop")
             try:

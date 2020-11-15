@@ -1,16 +1,19 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
 
-import _thread
+import base64
 import time
 import cv2
 import os
 
 from dotenv import load_dotenv
 
-from data_management import tempFileManger
-from data_management.video import Video
-from data_management import socketio
+import tempFileManger
+
+from video import Video
+from flask_socketio import emit
+from robotSetup import stopRobot
+from commands import socketio
 
 
 COUNT = 0
@@ -36,6 +39,7 @@ def on_disconnect():
     print('[INFO] WebClient disconnected.')
     global COUNT
     COUNT = COUNT - 1
+    stopRobot()
 
 
 @socketio.on('capture')
@@ -44,8 +48,21 @@ def capture(cam):
     global TAGCOUNT
 
     if (COUNT > 0 and 0 not in VIDEO):
-        img = VIDEO[cam].getFrame()
-        cv2.imwrite('data_management/temp/tag{}.jpg'.format(TAGCOUNT), img)
+        try:
+            sample1 = VIDEO[0].genCam()
+            yDim = sample1.shape[0]
+            xDim = sample1.shape[1]
+            try:
+                sample2 = VIDEO[1].genCam()
+                yOffset = yDim - sample2.shape[0]
+                xOffset = xDim - sample2.shape[1]
+            except:
+                print("camera 2 missing")
+        except:
+            print("camera 1 missing")
+
+        img = createImage(xDim, yDim, xOffset, yOffset)
+        cv2.imwrite('temp/tag{}.jpg'.format(TAGCOUNT), img)
 
         timerCapture = VIDEO[cam].getTime()
 
@@ -88,18 +105,39 @@ def emitCams():
     global COUNT
     global VIDEO
 
+    REBOOT = False
+
+    if ('FPS' in os.environ):
+        os.environ.pop('FPS')
+
+    load_dotenv("../.env")
+    print(os.environ['CAM_RATIO'])
     print(COUNT)
 
     if (COUNT > 0 and 0 not in VIDEO):
-        REBOOT = False
-        os.environ.pop('MAIN_FPS')
-        os.environ.pop('SECONDARY_FPS')
-        load_dotenv("data_management/../.env")
-        VIDEO.insert(0, Video(0, int(os.environ.get("MAIN_FPS")), 0, True))
+        VIDEO.insert(0, Video(0, int(os.environ.get("FPS")), 0, True))
+
+    if (COUNT > 0 and 1 not in VIDEO):
+        VIDEO.insert(1, Video(1, int(os.environ.get("FPS")), 0, True))
+
+    try:
+        sample1 = VIDEO[0].genCam()
+        yDim = sample1.shape[0]
+        xDim = sample1.shape[1]
+        try:
+            sample2 = VIDEO[1].genCam()
+            yOffset = yDim - sample2.shape[0]
+            xOffset = xDim - sample2.shape[1]
+        except:
+            print("camera 2 missing")
+    except:
+        print("camera 1 missing")
 
     try:
         while COUNT > 0 and not VIDEO[0].reboot and not REBOOT:
-            VIDEO[0].genCam()
+            img = toJPG(encodeFrame(createImage(xDim, yDim, xOffset, yOffset)))
+            socketio.emit("streamOut", img)
+
     except:
         print('failed to create camera')
 
@@ -109,6 +147,29 @@ def emitCams():
 
     if COUNT < 0:
         emitCams()
+
+
+def createImage(xDim, yDim, xOffset, yOffset):
+
+    global VIDEO
+
+    if 1 not in VIDEO:
+        return VIDEO[0].genCam()
+
+    mainImage = VIDEO[0].genCam()
+    secondaryImage = VIDEO[1].genCam()
+
+    mainImage[yOffset:yOffset+yDim, xOffset:xOffset+xDim] = secondaryImage
+    return mainImage
+
+
+def toJPG(frame):
+    _ret, jpeg = cv2.imencode('.jpg', frame)
+    return jpeg
+
+
+def encodeFrame(frame):
+    return base64.b64encode(frame.tobytes()).decode('utf-8')
 
 
 def rebootStream():

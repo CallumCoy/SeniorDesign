@@ -1,7 +1,20 @@
-from data_management.__init__ import create_app
+from app import createApp, socketio
+from dotenv import load_dotenv
+
+from robotSetup import Robot, handler
+from signal import signal, SIGINT
+
+signal(SIGINT, handler)
+
+try:
+    roboto = Robot()
+except:
+    print('failed to create Robot')
+    handler()
+
+
+load_dotenv("../.env")
 
 if __name__ == '__main__':
-    create_app = create_app()
-    create_app.run()
-else:
-    gunicorn_app = create_app()
+    app = createApp()
+    socketio.run(app, host='0.0.0.0', debug=True)

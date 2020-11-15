@@ -4,10 +4,10 @@ import json
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 
-from data_management.db import getDb
-from data_management.get import getVideo
-from data_management.streams import rebootStream
-from data_management.tempFileManger import moveFiles
+from db import getDb
+from get import getVideo
+from streams import rebootStream
+from tempFileManger import moveFiles
 
 bp = Blueprint('save', __name__, url_prefix='/save')
 
@@ -20,31 +20,37 @@ def settings():
     data = request.json
 
     wheelRadius = data['wheelRad']
-    mainCam = data['mainCamFPS']
-    secondaryCam = data['backCamFPS']
+    fps = data['fps']
+    camRatio = data['backCamFPS']
 
-    if 'WHEEL_RADIUS' not in os.environ:
-        os.environ['WHEEL_RADIUS'] = '6'
-    elif (wheelRadius and wheelRadius != os.environ.get('WHEEL_RADIUS')):
+    if 'WHEEL_RADIUS' in os.environ:
         os.environ.pop('WHEEL_RADIUS')
+
+    if (wheelRadius and wheelRadius > 0 and wheelRadius <= 20):
         os.environ['WHEEL_RADIUS'] = str(wheelRadius)
+    else:
+        os.environ['WHEEL_RADIUS'] = '6'
 
-    if 'MAIN_FPS' not in os.environ:
-        os.environ['MAIN_FPS'] = '20'
-    elif (mainCam and mainCam != os.environ.get('MAIN_FPS')):
-        os.environ.pop('MAIN_FPS')
-        os.environ['MAIN_FPS'] = str(mainCam)
+    if 'FPS' in os.environ:
+        os.environ.pop('FPS')
 
-    if "SECONDARY_FPS" not in os.environ:
-        os.environ['SECONDARY_FPS'] = '20'
-    elif (secondaryCam and secondaryCam != os.environ.get('SECONDARY_FPS')):
-        os.environ.pop('SECONDARY_FPS')
-        os.environ['SECONDARY_FPS'] = str(secondaryCam)
+    if (fps and fps > 1 and fps <= 60):
+        os.environ['FPS'] = str(fps)
+    else:
+        os.environ['FPS'] = '20'
 
-    with open("data_management/../.env", "w") as f:
-        f.write("MAIN_FPS={}\n".format(os.environ['MAIN_FPS']))
-        f.write("SECONDARY_FPS={}\n".format(os.environ['SECONDARY_FPS']))
+    if "CAM_RATIO" in os.environ:
+        os.environ.pop('CAM_RATIO')
+
+    if (camRatio and camRatio >= 0 and camRatio <= 0.5):
+        os.environ['CAM_RATIO'] = str(camRatio)
+    else:
+        os.environ['CAM_RATIO'] = '0.2'
+
+    with open("../.env", "w") as f:
+        f.write("FPS={}\n".format(os.environ['FPS']))
         f.write("WHEEL_RADIUS={}\n".format(os.environ['WHEEL_RADIUS']))
+        f.write("CAM_RATIO={}\n".format(os.environ['CAM_RATIO']))
 
     rebootStream()
 
