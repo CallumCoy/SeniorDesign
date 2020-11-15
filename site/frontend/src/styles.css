@@ -124,7 +124,7 @@ input.slider::-webkit-slider-thumb {
     appearance: none;
     width: 25px;
     height: 25px;
-    background-image: url(../../assets/Images/Mini_UCF_logo_2.0.png);
+    background-image: url(assets/Images/Mini_UCF_logo_2.0.png);
     background-color: rgba(0, 0, 0, 0);
     cursor: pointer;
 }
