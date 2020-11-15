@@ -14,3 +14,5 @@ site/frontend/**/**/env.ts
 site/frontend/**/*.env
 site/**/*.env
 .vscode/.ropeproject/config.py
+site/.vscode/.ropeproject/config.py
+site/.vscode/.ropeproject/objectdb
