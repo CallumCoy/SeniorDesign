@@ -12,15 +12,15 @@ from flask import(
     Blueprint, send_from_directory, send_file, request
 )
 
-from data_management.get import getOldest, getRun, getTag, getVideo
-from data_management.delete import garbageCollector
-from data_management.tempFileManger import remove
+from get import getOldest, getRun, getTag, getVideo
+from delete import garbageCollector
+from tempFileManger import remove
 
 bp = Blueprint('export', __name__, url_prefix='/export')
 
 CORS(bp)
 
-TMPLOC = "data_management/temp/"
+TMPLOC = "temp/"
 
 
 @bp.route('/tag/<target>')
@@ -70,7 +70,7 @@ def exportTag(target):
 def exportFolder(path):
     global TMPLOC
 
-    remove(glob.glob('data_management/temp/*.zip'))
+    remove(glob.glob('temp/*.zip'))
 
     # [0] = pipe ID, [1] = date/time taken
     parsedTarget = path.split('!')
@@ -81,11 +81,11 @@ def exportFolder(path):
     print(parsedTarget)
 
     fileName = "{}_{}_Data".format(pipeID, date)
-    directory = "data_management/../../frontend/dist/site/assets/Data/{}/".format(
+    directory = "../../frontend/dist/site/assets/Data/{}/".format(
         pipeID)
 
     try:
-        shutil.make_archive("data_management/temp/{}".format(fileName), 'zip',
+        shutil.make_archive("temp/{}".format(fileName), 'zip',
                             directory, date)
     except:
         print("Failed to make zip")

@@ -1,13 +1,10 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
-import numpy as py
 
-import base64
 import time
 import cv2
 import os
 
-from data_management import socketio
 
 VIDEOTYPE = 'mp4'
 CODEC = 'avc1'
@@ -57,7 +54,8 @@ class Video(object):
         self.captureDev.release()
 
     def genCam(self):
-        frame = self.getFrame()
+        _ret, frame = self.captureDev.read()
+
         if(frame is None):
             print('calling camera reboot')
             self.reboot = True
@@ -68,32 +66,18 @@ class Video(object):
 
         if not self.jetson:
             time.sleep(1/self.fps)
-        # self.focus(frame)
-        frame = self.encodeFrame(self.toJPG(frame))
-        socketio.emit("primaryStreamOut", frame)
-
-    def getFrame(self):
-        _ret, frame = self.captureDev.read()
-
-        if 'frame' not in locals():
-            del self
+        else:
+            self.focus(frame)
 
         return frame
-
-    def toJPG(self, frame):
-        _ret, jpeg = cv2.imencode('.jpg', frame)
-        return jpeg
-
-    def encodeFrame(self, frame):
-        return base64.b64encode(frame.tobytes()).decode('utf-8')
 
     def startWriting(self):
         global CODEC
         global VIDEOTYPE
 
-        cv2.imwrite('data_management/temp/imageFront.jpg', self.getFrame())
+        cv2.imwrite('temp/imageFront.jpg', self.getFrame())
         fourcc = cv2.VideoWriter_fourcc(*CODEC)
-        self.record = cv2.VideoWriter('data_management/temp/outputtedVideo.{}'.format(VIDEOTYPE),
+        self.record = cv2.VideoWriter('temp/outputtedVideo.{}'.format(VIDEOTYPE),
                                       fourcc,
                                       self.fps,
                                       (self.frameWidth, self.frameHeight))

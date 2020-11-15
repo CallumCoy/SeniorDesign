@@ -5,8 +5,8 @@ from flask import(
     Blueprint, request, jsonify
 )
 
-from data_management.fileManager import removeRun, removeTag
-from data_management.db import getDb
+from fileManager import removeRun, removeTag
+from db import getDb
 
 bp = Blueprint('delete', __name__, url_prefix='/delete')
 

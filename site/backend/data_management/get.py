@@ -2,7 +2,7 @@ import os
 
 from flask_cors import CORS
 
-from data_management.db import getDb
+from db import getDb
 from flask import Blueprint, jsonify, request
 
 bp = Blueprint('get', __name__, url_prefix='/get')
