@@ -29,7 +29,7 @@ def settings():
     if (wheelRadius and wheelRadius > 0 and wheelRadius <= 20):
         os.environ['WHEEL_RADIUS'] = str(wheelRadius)
     else:
-        os.environ['WHEEL_RADIUS'] = '6'
+        os.environ['WHEEL_RADIUS'] = '3'
 
     if 'FPS' in os.environ:
         os.environ.pop('FPS')
