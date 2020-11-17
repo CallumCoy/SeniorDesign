@@ -3,7 +3,7 @@
 import os
 import time
 import math
-import _thread
+import eventlet
 
 import Jetson.GPIO as GPIO
 import Adafruit_PCA9685
@@ -35,16 +35,16 @@ class Robot:
     motorAddress = 0x41
     motorBusNum = 1
 
-    # leftMotor
-    leftMotorLoc = 0
-    leftMotoReversed = False
+    # rightMotor
+    rightMotorLoc = 0
+    rightMotoReversed = True
     motor1DIR = 40
     motor1EncoderXPin = 13
     motor1EncoderYPin = 15
 
-    # rightMotor
-    rightMotorLoc = 1
-    rightMotoReversed = False
+    # leftMotor
+    leftMotorLoc = 1
+    leftMotoReversed = False
     motor2DIR = 38
     motor2EncoderXPin = 11
     motor2EncoderYPin = 12
@@ -54,27 +54,23 @@ class Robot:
     servoBusNum = 1
 
     botServoPos = 0
-    botServoMin = 246
+    botServoMin = 91
     botServoRest = 293
-    servoRest = 303
-
-    botServoPos = 0
-    botServoMin = 246
-    botServoMax = 360
+    botServoMax = 499
 
     topServoPos = 1
-    topServoMin = 303
-    topServoRest = 303
-    topServoMax = 438
+    topServoMin = 91
+    topServoRest = 360
+    topServoMax = 499
 
     def __init__(self):
 
         self.setupBot()
 
-        self.leftMotor = Motor(self.motor1EncoderXPin, self.motor1EncoderYPin, self.motorEncoderPR, self.motorAddress,
-                               self.motorBusNum, self.leftMotorLoc, self.motor1DIR, self.leftMotoReversed, self.motorFrequency)
-        self.rightMotor = Motor(self.motor2EncoderXPin, self.motor2EncoderYPin, self.motorEncoderPR, self.motorAddress,
-                                self.motorBusNum, self.rightMotorLoc, self.motor2DIR, self.rightMotoReversed, self.motorFrequency)
+        self.rightMotor = Motor(self.motor1EncoderXPin, self.motor1EncoderYPin, self.motorEncoderPR, self.motorAddress,
+                                self.motorBusNum, self.rightMotorLoc, self.motor1DIR, self.rightMotoReversed, self.motorFrequency)
+        self.leftMotor = Motor(self.motor2EncoderXPin, self.motor2EncoderYPin, self.motorEncoderPR, self.motorAddress,
+                               self.motorBusNum, self.leftMotorLoc, self.motor2DIR, self.leftMotoReversed, self.motorFrequency)
 
         self.botServo = Servo(self.botServoMin, self.botServoRest, self.botServoMax,
                               self.botServoPos, self.servoAddress, self.servoBusNum, self.servofrequency)
@@ -84,6 +80,9 @@ class Robot:
         self.stop()
 
         GPIO.output(self. safeNumber, GPIO.LOW)
+
+        self.botServo.rest()
+        self.topServo.rest()
 
     def setupBot(self):
 
@@ -100,7 +99,7 @@ class Robot:
         GPIO.setup(self.motor2EncoderXPin, GPIO.IN)
         GPIO.setup(self.motor2EncoderYPin, GPIO.IN)
 
-        time.sleep(0.1)
+        eventlet.sleep(0.1)
 
     def moveCamera(self, state, value):
         print(state)
@@ -109,36 +108,20 @@ class Robot:
         else:
             self.topServo.goto(value)
 
-    def stopCamera(self, *pos):
-        print("stopping camera, ", pos)
-        if pos is None:
-            _thread.start_new_thread(self.botServo.stop())
-            _thread.start_new_thread(self.topServo.stop())
-        elif 'x' in pos:
-            self.botServo.stop()
-        else:
-            self.topServo.stop()
-
-    def holdCamera(self):
-        self.botServo.servoHoldToggle()
-        self.topServo.servoHoldToggle()
-
     def stop(self):
-        self.leftMotor.stop()
         self.rightMotor.stop()
+        self.leftMotor.stop()
 
-        self.botServo.rest()
-        self.topServo.rest()
-
-        GPIO.output(self. safeNumber, GPIO.HIGH)
+        GPIO.output(self.safeNumber, GPIO.HIGH)
 
     def releaseStop(self):
         GPIO.output(self.safeNumber, GPIO.LOW)
 
     def moveStraight(self, value):
+        print("original value: " + str(value))
         try:
-            self.leftMotor.rotate(value)
             self.rightMotor.rotate(value)
+            self.leftMotor.rotate(value)
             GPIO.output(self. safeNumber, GPIO.LOW)
         except:
             print("failed to move")
@@ -146,8 +129,8 @@ class Robot:
 
     def rotate(self, value):
         try:
-            self.leftMotor.rotate(value)
             self.rightMotor.rotate(value * -1)
+            self.leftMotor.rotate(value)
             GPIO.output(self. safeNumber, GPIO.LOW)
         except:
             print("failed to move")
@@ -155,13 +138,13 @@ class Robot:
 
     def stopMotor(self):
         try:
-            distance1 = self.leftMotor.stop()
-            distance2 = self.rightMotor.stop()
+            distance1 = self.rightMotor.stop()
+            distance2 = self.leftMotor.stop()
 
             distance = (distance1 + distance2) / 2
 
-            print(distance)
-            print(math.pi * 2 * os.environ['WHEEL_RADIUS'] * distance)
+            print(math.pi * 2 *
+                  (float(os.environ['WHEEL_RADIUS'])/12) * distance)
         except:
             print("failed to stop")
             try:
@@ -228,14 +211,23 @@ class Motor:
         else:
             return
 
+        print("reversed: " + str(self.reversed) + " motor: " + str(self.motorPos) + "At speed input: " +
+              str(round(self.maxSpeed * abs(percent))) +
+              " percent: " + str(percent))
+
         self.pwmController.set_pwm(
-            self.motorPos, round(self.maxSpeed * percent), 0)
+            self.motorPos, round(self.maxSpeed * abs(percent)), 0)
 
         print(percent)
 
     def stop(self):
         self.pwmController.set_pwm(self.motorPos, 0, 0)
-        return self.encoderTotal / self.encoderRot
+        rotations = self.encoderTotal / self.encoderRot
+
+        self.encoderTotal = 0
+        self.lastEncoder = ''
+
+        return rotations
 
 
 class Servo:
@@ -285,7 +277,7 @@ class Servo:
 
             self.servoPos += interval
             self.pwmController.set_pwm(self.servoNum, 0, round(self.servoPos))
-            time.sleep(0.001)
+            eventlet.sleep()
 
     def rest(self):
         self.pwmController.set_pwm(self.servoNum, 0, self.servoRest)
@@ -293,7 +285,7 @@ class Servo:
     def stop(self):
         print("stopping servo " + str(self.servoNum))
         self.servoStop = True
-        time.sleep(0.005)
+        eventlet.sleep(0.005)
         self.servoStop = False
 
     def servoHoldToggle(self):

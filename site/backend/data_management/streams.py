@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
 
+import eventlet
 import base64
 import time
 import cv2
@@ -12,8 +13,7 @@ import tempFileManger
 
 from video import Video
 from flask_socketio import emit
-from robotSetup import stopRobot
-from commands import socketio
+from commands import socketio, roboto
 
 
 COUNT = 0
@@ -27,11 +27,11 @@ def on_connect():
     print('[INFO] WebClient connected.')
     global COUNT
 
-    COUNT = COUNT + 1
-
-    if COUNT == 1:
-        time.sleep(1)
-        socketio.start_background_task(emitCams)
+    #COUNT = COUNT + 1
+#
+    #if COUNT == 1:
+    #    eventlet.sleep(1)
+    #    socketio.start_background_task(emitCams)
 
 
 @socketio.on('disconnect')
@@ -39,7 +39,7 @@ def on_disconnect():
     print('[INFO] WebClient disconnected.')
     global COUNT
     COUNT = COUNT - 1
-    stopRobot()
+    roboto.stop()
 
 
 @socketio.on('capture')
@@ -129,17 +129,19 @@ def emitCams():
             yOffset = yDim - sample2.shape[0]
             xOffset = xDim - sample2.shape[1]
         except:
+            yOffset = yDim
+            xOffset = xDim
             print("camera 2 missing")
     except:
         print("camera 1 missing")
 
-    try:
-        while COUNT > 0 and not VIDEO[0].reboot and not REBOOT:
-            img = toJPG(encodeFrame(createImage(xDim, yDim, xOffset, yOffset)))
-            socketio.emit("streamOut", img)
+    # try:
+    while COUNT > 0 and not VIDEO[0].reboot and not REBOOT:
+        img = encodeFrame(toJPG(createImage(xDim, yDim, xOffset, yOffset)))
+        socketio.emit("streamOut", img)
 
-    except:
-        print('failed to create camera')
+    # except:
+    #    print('failed to create stream')
 
     if 0 in VIDEO:
         del VIDEO[0]

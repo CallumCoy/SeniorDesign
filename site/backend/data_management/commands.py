@@ -1,74 +1,68 @@
+import os
+
+from robotSetup import Robot
+
 from flask_socketio import SocketIO
+
 
 socketio = SocketIO(cors_allowed_origins="*")
 
-try:
-    import os
 
-    from appServer import roboto
+roboto = Robot()
 
-    @socketio.on('binary')
-    def binary(state):
-        if ('binary' in os.environ):
-            os.environ.pop('binary')
 
-        os.environ['binary'] = state
+@socketio.on('binary')
+def binary(_state):
+    print("binary pressed")
 
-    @socketio.on('stop')
-    def stop():
-        if ('stop' in os.environ):
-            os.environ.pop('stop')
 
-        os.environ['stop'] = 'True'
-        roboto.stopMotor()
+@socketio.on('stop')
+def stop():
+    socketio.start_background_task(roboto.stop)
 
-    @socketio.on('stopCam')
-    def stopCam(target):
-        if ('stop' in os.environ):
-            os.environ.pop('stop')
+    socketio.start_background_task(roboto.botServo.rest)
+    socketio.start_background_task(roboto.topServo.rest)
 
-        os.environ['stop'] = 'True'
-        print("stop Cam")
-        socketio.start_background_task(roboto.stopCamera(target))
 
-    @socketio.on('speed')
-    def speed(state):
-        if ('speed' in os.environ):
-            os.environ.pop('speed')
+@socketio.on('stopCam')
+def stopCam(target):
+    print("stop Cam")
+    if target is None:
+        socketio.start_background_task(roboto.botServo.stop)
+        socketio.start_background_task(roboto.topServo.stop)
+    elif 'x' in target:
+        socketio.start_background_task(roboto.botServo.stop)
+    else:
+        socketio.start_background_task(roboto.topServo.stop)
 
-        os.environ['speed'] = str(state)
 
-    @socketio.on('movement')
-    def movement(state, value):
-        if ('movement' in os.environ):
-            os.environ.pop('movement')
+@socketio.on('speed')
+def speed(_state):
+    print("speed sent")
 
-        if ('movementVal' in os.environ):
-            os.environ.pop('movementVal')
 
-        os.environ['movement'] = state
-        os.environ['movementVal'] = str(value)
+@socketio.on('movement')
+def movement(state, value):
+    print("movement call state = " + str(state) + ', value = ' + str(value))
 
-        if state == 'straight':
-            socketio.start_background_task(roboto.moveStraight(value))
-        else:
-            socketio.start_background_task(roboto.rotate(value))
+    if state == 'straight':
+        socketio.start_background_task(roboto.moveStraight(value))
+    else:
+        socketio.start_background_task(roboto.rotate(value))
 
-    @socketio.on('camera')
-    def camera(state, value):
-        if ('camera' in os.environ):
-            os.environ.pop('camera')
 
-        if ('cameraVal' in os.environ):
-            os.environ.pop('cameraVal')
+@socketio.on('stopMotors')
+def stopMotor():
+    print("stopping motors")
+    socketio.start_background_task(roboto.stopMotor())
 
-        os.environ['camera'] = state
-        os.environ['cameraVal'] = str(value)
 
-        socketio.start_background_task(roboto.moveCamera(state, value))
+@socketio.on('camera')
+def camera(state, value):
+    socketio.start_background_task(roboto.moveCamera(state, value))
 
-    @socketio.on('camHolt')
-    def camHolt():
-        socketio.start_background_task(roboto.holdCamera())
-except:
-    print("robot doesn't exist so commands aren't listening")
+
+@socketio.on('camHolt')
+def camHolt():
+    socketio.start_background_task(roboto.botServo.servoHoldToggle())
+    socketio.start_background_task(roboto.topServo.servoHoldToggle())

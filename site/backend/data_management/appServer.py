@@ -1,16 +1,10 @@
 from app import createApp, socketio
 from dotenv import load_dotenv
 
-from robotSetup import Robot, handler
+from robotSetup import handler
 from signal import signal, SIGINT
 
 signal(SIGINT, handler)
-
-try:
-    roboto = Robot()
-except:
-    print('failed to create Robot')
-    handler()
 
 
 load_dotenv("../.env")
