@@ -137,15 +137,18 @@ class Robot:
             print("failed to move")
             self.stopMotor()
 
-    def stopMotor(self):
+    def stopMotor(self, movementType="turn"):
         try:
             distance1 = self.rightMotor.stop()
             distance2 = self.leftMotor.stop()
 
-            distance = (distance1 + distance2) / 2
+            if movementType != "turn":
+                distance = (distance1 + distance2) / 2
 
-            print(math.pi * 2 *
-                  (float(os.environ['WHEEL_RADIUS'])/12) * distance)
+                print(math.pi * 2 *
+                      (float(os.environ['WHEEL_RADIUS'])/12) * distance)
+
+                # function for tracking location
         except:
             print("failed to stop")
             try:

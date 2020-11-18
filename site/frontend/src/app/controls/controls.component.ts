@@ -19,11 +19,13 @@ export class ControlsComponent implements OnInit {
           if (action.includes('cam')) {
             this.onCamClickD(action);
           } else if (action === 'speedUp') {
-            this.slider += 5;
-            this.socketEmit('speed');
+            if (this.slider <= 95) {
+              this.slider += 5;
+            }
           } else if (action === 'speedDown') {
-            this.slider -= 5;
-            this.socketEmit('speed');
+            if (this.slider >= 5) {
+              this.slider -= 5;
+            }
           } else if (action === 'binary') {
             this.onBinClick('True');
           } else if (action === 'capture') {
@@ -110,9 +112,9 @@ export class ControlsComponent implements OnInit {
 
   onClickR(button) {
     if (button === 'left' || button === 'right') {
-      this.socketEmit('movement', 'turn', 0);
+      this.socketEmit('stopMotors', 'turn');
     } else {
-      this.socketEmit('movement', 'straight', 0);
+      this.socketEmit('stopMotors', 'straight');
     }
   }
 
@@ -331,6 +333,8 @@ export class ControlsComponent implements OnInit {
   socketEmit(channel: string, command?: string, args?: Number | String) {
     if (channel === 'stop') {
       this.socket.emit(channel);
+    } else if (channel === 'stopMotors') {
+      this.socket.emit(channel, command);
     } else if (channel === 'binary') {
       this.socket.emit(channel, command);
     } else if (channel === 'stopCam') {

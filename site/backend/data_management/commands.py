@@ -50,17 +50,21 @@ def movement(state, value):
 
 
 @socketio.on('stopMotors')
-def stopMotor():
+def stopMotor(target):
     print("stopping motors")
-    socketio.start_background_task(roboto.stopMotor())
+
+    if(target == None):
+        socketio.start_background_task(roboto.stopMotor(movementType='turn'))
+    else:
+        socketio.start_background_task(roboto.stopMotor(movementType=target))
 
 
-@socketio.on('camera')
+@ socketio.on('camera')
 def camera(state, value):
     socketio.start_background_task(roboto.moveCamera(state, value))
 
 
-@socketio.on('camHolt')
+@ socketio.on('camHolt')
 def camHolt():
     socketio.start_background_task(roboto.botServo.servoHoldToggle())
     socketio.start_background_task(roboto.topServo.servoHoldToggle())
