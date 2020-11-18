@@ -2,6 +2,7 @@ import export
 import get
 import delete
 import save
+import streams
 
 from flask import Flask
 from flask_cors import CORS
@@ -23,6 +24,7 @@ def createApp():
     app.register_blueprint(delete.bp)
     app.register_blueprint(get.bp)
     app.register_blueprint(export.bp)
+    app.register_blueprint(streams.bp)
 
     if __name__ == "__main__":
         socketio.run(app, host='0.0.0.0', debug=True)
