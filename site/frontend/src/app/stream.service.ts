@@ -1,39 +1,34 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { RunService } from './run.service';
+import { BehaviorSubject, Observable, Observer, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StreamService {
-  primaryCam: BehaviorSubject<any> = new BehaviorSubject<any>(0);
+  cam: BehaviorSubject<any> = new BehaviorSubject<any>(0);
   recording = false;
 
-  constructor(private socket: Socket, private runService: RunService) {}
+  constructor(private socket: Socket) {}
 
   ngOnInit() {}
 
-  setPrimaryCam(image: any): void {
-    this.primaryCam.next(image);
-  }
-
-  watchVideo() {
-    return new Observable((observer: Observer<any>) => {
-      this.socket.on('primaryStreamOut', (data) => {
-        observer.next(data);
-      });
-    });
+  setcam(image: any): void {
+    this.cam.next(image);
   }
 
   captureImage() {
     if (this.recording) {
-      this.socket.emit('capture', this.primaryCam.getValue());
+      this.socket.emit('capture');
     }
   }
 
   refocus() {
     this.socket.emit('refocus');
+  }
+
+  swapImage() {
+    this.socket.emit('swapImage');
   }
 
   captureReturn() {
