@@ -12,51 +12,49 @@ import { ToggleService } from '../toggle.service';
 })
 export class SettingsComponent implements OnInit {
   wheelRadius: number = 6;
-  mainCameraFPS: number = 10;
-  backCameraFPS: number = 10;
+  ratio: number = 0.2;
+  FPS: number = 18;
 
   constructor(private toggleService: ToggleService, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.getSettings().subscribe((data) => {
       this.wheelRadius = data['wheelRadius'];
-      this.mainCameraFPS = data['mainFPS'];
-      this.backCameraFPS = data['secondaryFPS'];
+      this.ratio = data['camRatio'];
+      try {
+        this.FPS = data['FPS'];
+      } catch {
+        console.log('fps disabled');
+      }
     });
   }
 
-  comfirmBut(wheelRad, mainCamFPS, backCamFPS) {
+  comfirmBut(wheelRad, camRatio) {
     const wheel = Number(wheelRad);
-    const main = Math.floor(Number(mainCamFPS));
-    const back = Math.floor(Number(backCamFPS));
+    const ratio = Number(camRatio);
 
     if (wheel <= 0) {
       alert(`Invalid value for the wheels`);
       return;
     }
 
-    if (main <= 0 && main >= 60) {
+    if (ratio <= 0 && ratio >= 0.5) {
       alert(`Invalid value for the front camera's FPS`);
       return;
     }
 
-    if (back <= 0 && back <= 60) {
-      alert(`Invalid value for the back camera's FPS`);
-      return;
-    }
-
-    this.updateSettings(wheel, main, back).subscribe();
+    this.updateSettings(wheel, ratio).subscribe();
   }
 
   cancelBut() {
     this.toggleService.setShowSettings(false);
   }
 
-  updateSettings(wheelRad, mainCamFPS, backCamFPS): Observable<any> {
+  updateSettings(wheelRad, camRatio): Observable<any> {
     return this.http
       .post(
         `http://${API_URL}/save/settings`,
-        { wheelRad: wheelRad, mainCamFPS: mainCamFPS, backCamFPS: backCamFPS },
+        { wheelRad: wheelRad, camRatio: camRatio },
         this.httpOptions
       )
       .pipe(
