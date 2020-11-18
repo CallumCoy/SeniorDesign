@@ -1,23 +1,21 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
+# pylint: disable=global-statement
+"""to stop pylint from complainign about any excepts"""
 
-import eventlet
-import base64
+
 import time
-import cv2
-import os
-
 from dotenv import load_dotenv
-
-import tempFileManger
-
-from multiCam import MultiCam
 from flask_socketio import emit
-from commands import socketio, roboto
-
 from flask import Blueprint, jsonify, request, render_template, Response
 from flask_cors import CORS
-
+import eventlet
+import base64
+import cv2
+import os
+import tempFileManger
+from multiCam import MultiCam
+from commands import socketio, roboto
 bp = Blueprint('stream', __name__, url_prefix='/stream')
 
 CORS(bp)

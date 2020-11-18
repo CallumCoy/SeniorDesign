@@ -1,16 +1,17 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
+# pylint: disable=bare-except
+"""to stop pylint from complainign about any excepts"""
+
+
+
 
 import eventlet
 import time
 import cv2
 import os
-
 from dotenv import load_dotenv
-
 from video import Video
-
-
 class MultiCam(object):
 
     codec = 'avc1'
@@ -141,7 +142,7 @@ class MultiCam(object):
 
     def startRecording(self):
         self.tagCount = 0
-        self.recordTime = time.time
+        self.recordTime = time.time()
 
         cv2.imwrite('temp/imageFront.jpg', self.generateFinalImage())
         fourcc = cv2.VideoWriter_fourcc(*'DIVX')
