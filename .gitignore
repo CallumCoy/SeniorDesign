@@ -16,3 +16,4 @@ site/**/*.env
 .vscode/.ropeproject/config.py
 site/.vscode/.ropeproject/config.py
 site/.vscode/.ropeproject/objectdb
+site/backend/data_management/templates/index.html
