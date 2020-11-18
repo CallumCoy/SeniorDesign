@@ -107,6 +107,9 @@ class Video(object):
             self.focus_finished = True
 
     def refocus(self):
+        self.dec_count = 0
+        self.focuser = False
+        self.focal_distance = 10
         self.focus_finished = False
         eventlet.sleep()
 

@@ -23,12 +23,12 @@ class MultiCam(object):
 
     flip = False
 
-    frontCamIndex = 1
+    frontCamIndex = 0
     frontCamJetson = True
     frontCamFlip = 0
     frontCamAllowFocus = True
 
-    backCamIndex = 0
+    backCamIndex = 1
     backCamJetson = True
     backCamFlip = 0
     backCamAllowFocus = False

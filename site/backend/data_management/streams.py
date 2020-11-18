@@ -65,6 +65,9 @@ def refocus():
     if CAMERA.frontCam is not None:
         CAMERA.frontCam.refocus()
 
+    if CAMERA.backCam is not None:
+        CAMERA.backCam.refocus()
+
 
 @socketio.on('swapImage')
 def swapImage():
