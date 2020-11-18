@@ -48,8 +48,9 @@
       <img
         [hidden]="videoSrc"
         class="maxWidth"
-        [src]="'data:image/jpeg;base64,' + primaryCam"
-        [alt]="'data:image/jpeg;base64,' + primaryCam"
+        [src]="apiLoc + '/stream/video_feed'"
+        alt="stream not found"
+        (click)="swapImage()"
       />
       <video
         #rewatch

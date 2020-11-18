@@ -6,6 +6,8 @@ import { FilterService } from './filter.service';
 import { RunService } from './run.service';
 import { SortService } from './sortService.service';
 
+import { API_URL } from './env';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -32,10 +34,8 @@ export class AppComponent {
   operation: string;
   pullOutCont = '<===';
   innerWidth: any;
-  primaryCam: any;
   videoSrc: string = null;
-
-  IsPrimaryCamLoading: boolean = false;
+  apiLoc: string = API_URL;
 
   constructor(
     private toggleService: ToggleService,
@@ -58,10 +58,6 @@ export class AppComponent {
 
     this.toggleService.getButtonOp().subscribe((value) => {
       this.operation = value;
-    });
-
-    this.streamService.watchVideo().subscribe((data) => {
-      this.primaryCam = data;
     });
 
     this.streamService.captureReturn().subscribe((data) => {
@@ -155,6 +151,10 @@ export class AppComponent {
 
   toggleSort() {
     this.sort = !this.sort;
+  }
+
+  swapImage() {
+    this.streamService.swapImage();
   }
 
   sortAlpha() {
