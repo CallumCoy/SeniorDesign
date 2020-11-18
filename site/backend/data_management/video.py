@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 """to stop pylint from complainign about cv2"""
 
+import eventlet
 import time
 import cv2
 import os
@@ -30,16 +31,15 @@ class Video(object):
     frameWidth = 1280
     frameHeight = 720
     recordTime = time.time()
+    allowFocus = False
 
-    def __init__(self, target, fps, flip, jetson):
+    def __init__(self, target, fps, flip, jetson, focus):
         print(jetson)
         if jetson:
             # Jetson setup
             #(capture_width, capture_height, display_width, display_height, framerate, flip_method)
             self.captureDev = cv2.VideoCapture(jetsonCamSetup(
-                capture_width=1280, capture_height=720, display_width=1280, display_height=720, framerate=fps, flip_method=flip), cv2.CAP_GSTREAMER)
-            print(jetsonCamSetup(capture_width=1280, capture_height=720,
-                                 display_width=1280, display_height=720, framerate=fps, flip_method=flip))
+                index=target, capture_width=1280, capture_height=720, framerate=fps, flip_method=flip), cv2.CAP_GSTREAMER)
         else:
             self.captureDev = cv2.VideoCapture(target)
 
@@ -48,12 +48,16 @@ class Video(object):
         self.frameWidth = int(self.captureDev.get(3))  # 1280
         self.frameHeight = int(self.captureDev.get(4))  # 720
         self.jetson = jetson
+        self.allowFocus = focus
+        eventlet.sleep()
 
     def __delete__(self, instance):
         self.record.release()
         self.captureDev.release()
+        eventlet.sleep()
 
     def genCam(self):
+        eventlet.sleep()
         _ret, frame = self.captureDev.read()
 
         if(frame is None):
@@ -65,38 +69,17 @@ class Video(object):
             self.writeVid(frame)
 
         if not self.jetson:
-            time.sleep(1/self.fps)
-        else:
+            eventlet.sleep(1/self.fps)
+        elif self.allowFocus:
             self.focus(frame)
 
         return frame
 
-    def startWriting(self):
-        global CODEC
-        global VIDEOTYPE
-
-        cv2.imwrite('temp/imageFront.jpg', self.getFrame())
-        fourcc = cv2.VideoWriter_fourcc(*CODEC)
-        self.record = cv2.VideoWriter('temp/outputtedVideo.{}'.format(VIDEOTYPE),
-                                      fourcc,
-                                      self.fps,
-                                      (self.frameWidth, self.frameHeight))
-        self.recording = True
-
-    def writeVid(self, frame):
-        self.record.write(frame)
-
-    def stopWriting(self):
-        self.recording = False
-        self.record.release()
-
     def captureImage(self):
         return self.getFrame()
 
-    def getTime(self):
-        return time.time() - self.recordTime
-
     def focus(self, img):
+        eventlet.sleep()
         if self.dec_count < 6 and self.focal_distance < 1000:
             # Adjust focus
             self.focusing(self.focal_distance)
@@ -125,6 +108,7 @@ class Video(object):
 
     def refocus(self):
         self.focus_finished = False
+        eventlet.sleep()
 
     def focusing(self, val):
         value = (val << 4) & 0x3ff0
@@ -144,12 +128,11 @@ class Video(object):
         return cv2.mean(img_sobel)[0]
 
 
-def jetsonCamSetup(capture_width, capture_height, display_width, display_height, framerate, flip_method):
-    return ('nvarguscamerasrc ! '
+def jetsonCamSetup(index, capture_width, capture_height, framerate, flip_method):
+    return ('nvarguscamerasrc sensor_id=%d ! '
             'video/x-raw(memory:NVMM), '
             'width=(int)%d, height=(int)%d, '
             'format=(string)NV12, framerate=(fraction)%d/1 ! '
             'nvvidconv flip-method=%d ! '
-            'video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! '
             'videoconvert ! '
-            'video/x-raw, format=(string)BGR ! appsink' % (capture_width, capture_height, framerate, flip_method, display_width, display_height))
+            'video/x-raw, format=(string)BGR ! appsink' % (index, capture_width, capture_height, framerate, flip_method))
