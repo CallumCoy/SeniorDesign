@@ -1,5 +1,3 @@
-import os
-
 from robotSetup import Robot
 
 from flask_socketio import SocketIO
