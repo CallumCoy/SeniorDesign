@@ -43,7 +43,7 @@ class Robot:
     motor1EncoderYPin = 15
 
     # leftMotor
-    leftMotorLoc = 1
+    leftMotorLoc = 15
     leftMotoReversed = False
     motor2DIR = 38
     motor2EncoderXPin = 11
@@ -53,12 +53,12 @@ class Robot:
     servoAddress = 0x40
     servoBusNum = 1
 
-    botServoPos = 0
+    botServoPos = 15
     botServoMin = 91
     botServoRest = 293
     botServoMax = 499
 
-    topServoPos = 1
+    topServoPos = 0
     topServoMin = 91
     topServoRest = 360
     topServoMax = 499
@@ -103,6 +103,7 @@ class Robot:
 
     def moveCamera(self, state, value):
         print(state)
+        GPIO.output(self. safeNumber, GPIO.LOW)
         if state == 'x':
             self.botServo.goto(value)
         else:
@@ -211,12 +212,16 @@ class Motor:
         else:
             return
 
+        power = abs(percent)
+        if power != 1 and power != 0:
+            power = 1 - power
+
         print("reversed: " + str(self.reversed) + " motor: " + str(self.motorPos) + "At speed input: " +
-              str(round(self.maxSpeed * abs(percent))) +
+              str(round(self.maxSpeed * power)) +
               " percent: " + str(percent))
 
         self.pwmController.set_pwm(
-            self.motorPos, round(self.maxSpeed * abs(percent)), 0)
+            self.motorPos, round(self.maxSpeed * power), 0)
 
         print(percent)
 
@@ -271,13 +276,18 @@ class Servo:
         if (self.servoPos - target) == 0:
             return
         interval = (self.servoPos - target) / abs(self.servoPos - target) * -1
+
         while not self.servoStop and not self.servoHold and self.servoPos != round(target):
 
-            print('position ' + str(self.servoPos) + ' target: ' + str(target))
+            print('position ' + str(self.servoPos) +
+                  ' target: ' + str(target))
 
             self.servoPos += interval
-            self.pwmController.set_pwm(self.servoNum, 0, round(self.servoPos))
-            eventlet.sleep()
+            self.pwmController.set_pwm(
+                self.servoNum, 0, round(self.servoPos))
+
+            if (self.servoPos % 5 == 0):
+                eventlet.sleep()
 
     def rest(self):
         self.pwmController.set_pwm(self.servoNum, 0, self.servoRest)
