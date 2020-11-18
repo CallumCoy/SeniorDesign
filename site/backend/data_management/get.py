@@ -12,7 +12,7 @@ CORS(bp)
 
 @bp.route('/settings', methods=(['GET']))
 def getSettings():
-    return jsonify({'mainFPS': os.environ.get('MAIN_FPS'), 'secondaryFPS': os.environ.get('SECONDARY_FPS'), 'wheelRadius': os.environ.get('WHEEL_RADIUS')})
+    return jsonify({'FPS': os.environ.get('FPS'), 'camRatio': os.environ.get('CAM_RATIO'), 'wheelRadius': os.environ.get('WHEEL_RADIUS')})
 
 
 @bp.route('/runs', methods=(['GET']))

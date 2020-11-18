@@ -6,7 +6,6 @@ from flask_cors import CORS
 
 from db import getDb
 from get import getVideo
-from streams import rebootStream
 from tempFileManger import moveFiles
 
 bp = Blueprint('save', __name__, url_prefix='/save')
@@ -20,8 +19,10 @@ def settings():
     data = request.json
 
     wheelRadius = data['wheelRad']
-    fps = data['fps']
-    camRatio = data['backCamFPS']
+    camRatio = data['camRatio']
+    fps = 18
+
+    print(camRatio)
 
     if 'WHEEL_RADIUS' in os.environ:
         os.environ.pop('WHEEL_RADIUS')
@@ -37,7 +38,7 @@ def settings():
     if (fps and fps > 1 and fps <= 60):
         os.environ['FPS'] = str(fps)
     else:
-        os.environ['FPS'] = '20'
+        os.environ['FPS'] = '10'
 
     if "CAM_RATIO" in os.environ:
         os.environ.pop('CAM_RATIO')
@@ -51,8 +52,6 @@ def settings():
         f.write("FPS={}\n".format(os.environ['FPS']))
         f.write("WHEEL_RADIUS={}\n".format(os.environ['WHEEL_RADIUS']))
         f.write("CAM_RATIO={}\n".format(os.environ['CAM_RATIO']))
-
-    rebootStream()
 
     return jsonify({})
 
