@@ -48,7 +48,7 @@
       <img
         [hidden]="videoSrc"
         class="maxWidth"
-        [src]="apiLoc + '/stream/video_feed'"
+        [src]="'http://' + apiLoc + '/stream/video_feed'"
         alt="stream not found"
         (click)="swapImage()"
       />

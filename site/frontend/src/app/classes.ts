@@ -76,32 +76,31 @@ export class Controller {
     for (let j: number = 0; j < 2; j++) {
       let input = controller.axes[j + 6].valueOf();
       if (input <= -0.15) {
-        this.axes[12 + j] = 0;
-        this.axes[12 + j] = 1;
+        this.buttons[12 + j] = 0;
+        this.buttons[12 + j] = 1;
       } else if (input >= 0.15) {
-        this.axes[12 + j] = 1;
-        this.axes[12 + j] = 0;
+        this.buttons[12 + j] = 1;
+        this.buttons[12 + j] = 0;
       } else {
-        this.axes[12 + j] = 0;
-        this.axes[12 + j] = 0;
+        this.buttons[12 + j] = 0;
+        this.buttons[12 + j] = 0;
       }
     }
 
     let i = 0;
 
-    controller.axes.forEach((axes) => {
-      let input = controller.axes[0].valueOf();
+    for (let j = 0; j < this.axes.length; j++) {
+      let input = controller.axes[i].valueOf();
       if (input <= -0.15) {
-        this.axes[i] = -1;
+        this.axes[j] = -1;
       } else if (input >= 0.15) {
-        this.axes[i] = 1;
+        this.axes[j] = 1;
       } else {
-        this.axes[i] = 0;
+        this.axes[j] = 0;
       }
 
-      axes = controller.axes[i].valueOf();
-      i = i === 1 ? i + 1 : i + 2;
-    });
+      i = i === 1 ? i + 2 : i + 1;
+    }
   }
 
   oldPSToStandard(controller: Gamepad) {
@@ -140,19 +139,19 @@ export class Controller {
     this.buttons[16] = controller.buttons[10].value;
 
     let i = 0;
-    controller.axes.forEach((axes) => {
-      let input = controller.axes[0].valueOf();
+
+    for (let j = 0; j < this.axes.length; j++) {
+      let input = controller.axes[i].valueOf();
       if (input <= -0.15) {
-        this.axes[i] = -1;
+        this.axes[j] = -1;
       } else if (input >= 0.15) {
-        this.axes[i] = 1;
+        this.axes[j] = 1;
       } else {
-        this.axes[i] = 0;
+        this.axes[j] = 0;
       }
 
-      axes = controller.axes[i].valueOf();
-      i = i === 1 ? i + 1 : i + 2;
-    });
+      i = i === 1 ? i + 2 : i + 1;
+    }
   }
 
   commonToStandard(controller: Gamepad) {
