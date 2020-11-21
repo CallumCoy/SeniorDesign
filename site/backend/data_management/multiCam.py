@@ -26,7 +26,7 @@ class MultiCam(object):
     frontCamIndex = 0
     frontCamJetson = True
     frontCamFlip = 0
-    frontCamAllowFocus = True
+    frontCamAllowFocus = False
 
     backCamIndex = 1
     backCamJetson = True
@@ -46,7 +46,9 @@ class MultiCam(object):
         if ('FPS' in os.environ):
             os.environ.pop('FPS')
 
-        load_dotenv("../.env")
+        load_dotenv("/home/sewerbot/repo/SeniorDesign/site/backend/.env")
+
+        print(os.environ.get("FPS"))
 
         try:
             self.frontCam = Video(self.frontCamIndex, int(os.environ.get(
@@ -62,9 +64,6 @@ class MultiCam(object):
             print("failed to insert Camera 2")
             failCount += 1
 
-        if failCount == 2:
-            del self
-
         self.generatOverlayValues()
 
     def generatOverlayValues(self):
@@ -72,7 +71,9 @@ class MultiCam(object):
         if ('CAM_RATIO' in os.environ):
             os.environ.pop('CAM_RATIO')
 
-        load_dotenv("../.env")
+        load_dotenv("/home/sewerbot/repo/SeniorDesign/site/backend/.env")
+
+        print('CAMRATIO = ' + os.environ['CAM_RATIO'])
 
         try:
             sample1 = self.frontCam.genCam()
@@ -104,7 +105,6 @@ class MultiCam(object):
         self.dim = (self.xDim, self.yDim)
 
     def generateFinalImage(self):
-
         if self.backCam is None:
             return self.backCam.genCam()
         elif self.frontCam is None:
@@ -121,6 +121,7 @@ class MultiCam(object):
 
         mainImage[self.yOffset: self.yOffset + self.yDim,
                   self.xOffset: self.xOffset + self.xDim] = smallFrame
+
         return mainImage
 
     def capture(self):

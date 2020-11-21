@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 signal(SIGINT, handler)
 
 
-load_dotenv("../.env")
+load_dotenv("/home/sewerbot/repo/SeniorDesign/site/backend/.env")
 
 if __name__ == '__main__':
     app = createApp()

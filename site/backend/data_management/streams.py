@@ -62,9 +62,6 @@ def capture():
 def refocus():
     global CAMERA
 
-    if CAMERA.frontCam is not None:
-        CAMERA.frontCam.refocus()
-
     if CAMERA.backCam is not None:
         CAMERA.backCam.refocus()
 
@@ -95,7 +92,6 @@ def startCams():
 
     REBOOT = False
 
-    print(os.environ['CAM_RATIO'])
     print(COUNT)
 
     if (COUNT > 0 and CAMERA is None):
@@ -106,11 +102,12 @@ def startCams():
 
 def getCams():
     global CAMERA
+    print("test")
 
     if CAMERA is None:
         startCams()
 
-    while COUNT > 0 and not CAMERA.frontCam.reboot and not CAMERA.backCam.reboot:
+    while COUNT > 0:
         eventlet.sleep()
         # try:
         image = cv2.imencode('.jpg', CAMERA.generateFinalImage())
@@ -129,7 +126,7 @@ def getCams():
         if CAMERA and COUNT > 0:
             getCams()
     except:
-        print("CAmera deleted unexpectedly")
+        print("Camera deleted unexpectedly")
 
 
 @bp.route('/')
@@ -141,6 +138,7 @@ def index():
 @bp.route('/video_feed')
 def showCams():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    print('test1')
     return Response(getCams(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
