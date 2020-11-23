@@ -12,7 +12,7 @@ from flask import(
     Blueprint, send_from_directory, send_file, request
 )
 
-from get import getOldest, getRun, getTag, getVideo
+from get import getRun, getTag, getVideo
 from delete import garbageCollector
 from tempFileManger import remove
 
