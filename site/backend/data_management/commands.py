@@ -41,8 +41,6 @@ def speed(_state):
 
 @socketio.on('movement')
 def movement(state, value):
-    print("movement call state = " + str(state) + ', value = ' + str(value))
-
     if state == 'straight':
         socketio.start_background_task(roboto.moveStraight(value))
     else:
@@ -51,8 +49,6 @@ def movement(state, value):
 
 @socketio.on('stopMotors')
 def stopMotor(target):
-    print("stopping motors")
-
     if(target == None):
         socketio.start_background_task(roboto.stopMotor(movementType='turn'))
     else:
