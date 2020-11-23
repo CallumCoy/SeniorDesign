@@ -22,16 +22,20 @@ CORS(bp)
 
 COUNT = 0
 CAMERA = None
+LASTPING = time.time()
 
 
 @socketio.on('connect')
 def on_connect():
     print('[INFO] WebClient connected.')
     global COUNT
+    global LASTPING
 
     COUNT = COUNT + 1
+    LASTPING = time.time()
 
     if COUNT == 1:
+        checkComp()
         eventlet.sleep(1)
         socketio.start_background_task(startCams())
 
@@ -43,11 +47,27 @@ def on_disconnect():
     global CAMERA
 
     COUNT = COUNT - 1
-    roboto.stop()
+    roboto.stopMotor("turn")
 
-    if COUNT == 0:
-        del CAMERA
-        CAMERA = None
+
+@bp.route('/check', methods=(['POST']))
+def check():
+    global LASTPING
+
+    LASTPING = time.time()
+
+    if LASTPING - time.time() > 1:
+        checkComp()
+
+    return jsonify({})
+
+
+def checkComp():
+    global LASTPING
+    while time.time() - LASTPING <= 1:
+        eventlet.sleep(0.9)
+    print("failed to get ping within alloted time")
+    roboto.stopMotor("turn")
 
 
 @socketio.on('capture')

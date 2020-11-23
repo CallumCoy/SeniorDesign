@@ -210,6 +210,17 @@ export class RunService {
     return this.allRunsData[index].findIndex(lambda);
   }
 
+  backendCheck(): Observable<any> {
+    return this.http
+      .post<any>(`http://${API_URL}/stream/check`, this.httpOptions)
+      .pipe(
+        tap(() => {
+          console.log('notifying backend');
+        }),
+        catchError(this.handleError<Run>())
+      );
+  }
+
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
   };
