@@ -23,12 +23,12 @@ class MultiCam(object):
 
     flip = False
 
-    frontCamIndex = 0
+    frontCamIndex = 1
     frontCamJetson = True
     frontCamFlip = 0
     frontCamAllowFocus = False
 
-    backCamIndex = 1
+    backCamIndex = 0
     backCamJetson = True
     backCamFlip = 0
     backCamAllowFocus = False
@@ -106,9 +106,10 @@ class MultiCam(object):
 
     def generateFinalImage(self):
         if self.backCam is None:
-            return self.backCam.genCam()
-        elif self.frontCam is None:
             return self.frontCam.genCam()
+
+        elif self.frontCam is None:
+            return self.backCam.genCam()
 
         if self.flip:
             mainImage = self.frontCam.genCam()
@@ -116,6 +117,12 @@ class MultiCam(object):
         else:
             mainImage = self.backCam.genCam()
             secondaryImage = self.frontCam.genCam()
+
+        if secondaryImage is None:
+            return mainImage
+
+        elif mainImage is None:
+            return secondaryImage
 
         smallFrame = cv2.resize(secondaryImage, self.dim)
 
