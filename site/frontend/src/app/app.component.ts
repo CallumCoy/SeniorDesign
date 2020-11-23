@@ -36,6 +36,7 @@ export class AppComponent {
   innerWidth: any;
   videoSrc: string = null;
   apiLoc: string = API_URL;
+  checkInterval;
 
   constructor(
     private toggleService: ToggleService,
@@ -55,6 +56,10 @@ export class AppComponent {
       this.sideList = true;
       this.pullOutBar = false;
     }
+
+    this.checkInterval = setInterval(() => {
+      this.pingBackend();
+    }, 850);
 
     this.toggleService.getButtonOp().subscribe((value) => {
       this.operation = value;
@@ -87,6 +92,10 @@ export class AppComponent {
     this.toggleService.getShowSettings().subscribe((state) => {
       this.showSettings = state;
     });
+  }
+
+  pingBackend() {
+    this.runService.backendCheck().subscribe();
   }
 
   @HostListener('window:resize', ['$event'])

@@ -22,16 +22,20 @@ CORS(bp)
 
 COUNT = 0
 CAMERA = None
+LASTPING = time.time()
 
 
 @socketio.on('connect')
 def on_connect():
     print('[INFO] WebClient connected.')
     global COUNT
+    global LASTPING
 
     COUNT = COUNT + 1
+    LASTPING = time.time()
 
     if COUNT == 1:
+        checkComp()
         eventlet.sleep(1)
         socketio.start_background_task(startCams())
 
@@ -43,11 +47,27 @@ def on_disconnect():
     global CAMERA
 
     COUNT = COUNT - 1
-    roboto.stop()
+    roboto.stopMotor("turn")
 
-    if COUNT == 0:
-        del CAMERA
-        CAMERA = None
+
+@bp.route('/check', methods=(['POST']))
+def check():
+    global LASTPING
+
+    LASTPING = time.time()
+
+    if LASTPING - time.time() > 1:
+        checkComp()
+
+    return jsonify({})
+
+
+def checkComp():
+    global LASTPING
+    while time.time() - LASTPING <= 1:
+        eventlet.sleep(0.9)
+    print("failed to get ping within alloted time")
+    roboto.stopMotor("turn")
 
 
 @socketio.on('capture')
@@ -61,9 +81,6 @@ def capture():
 @socketio.on('refocus')
 def refocus():
     global CAMERA
-
-    if CAMERA.frontCam is not None:
-        CAMERA.frontCam.refocus()
 
     if CAMERA.backCam is not None:
         CAMERA.backCam.refocus()
@@ -95,7 +112,6 @@ def startCams():
 
     REBOOT = False
 
-    print(os.environ['CAM_RATIO'])
     print(COUNT)
 
     if (COUNT > 0 and CAMERA is None):
@@ -106,11 +122,12 @@ def startCams():
 
 def getCams():
     global CAMERA
+    print("test")
 
     if CAMERA is None:
         startCams()
 
-    while COUNT > 0 and not CAMERA.frontCam.reboot and not CAMERA.backCam.reboot:
+    while COUNT > 0:
         eventlet.sleep()
         # try:
         image = cv2.imencode('.jpg', CAMERA.generateFinalImage())
@@ -129,7 +146,7 @@ def getCams():
         if CAMERA and COUNT > 0:
             getCams()
     except:
-        print("CAmera deleted unexpectedly")
+        print("Camera deleted unexpectedly")
 
 
 @bp.route('/')
@@ -141,6 +158,7 @@ def index():
 @bp.route('/video_feed')
 def showCams():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    print('test1')
     return Response(getCams(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 

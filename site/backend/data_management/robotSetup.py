@@ -10,25 +10,33 @@ import Adafruit_PCA9685
 
 
 def handler(_signalRecieved='', _frame=''):
-    print("Closing robot with grace")
+    print("shutting motors off")
 
     safeNumber = 7
-    GPIO.setmode(GPIO.BOARD)
+    try:
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(safeNumber, GPIO.OUT)
+    except:
+        print("board already declared")
     GPIO.output(safeNumber, GPIO.HIGH)
-
-    GPIO.cleanup()
 
 
 def stopRobot():
     print("halting robot")
 
     safeNumber = 7
-    GPIO.setmode(GPIO.BOARD)
+    try:
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(safeNumber, GPIO.OUT)
+    except:
+        print("board already declared")
     GPIO.output(safeNumber, GPIO.HIGH)
 
 
 class Robot:
     safeNumber = 7
+
+    curID = 0
 
     motorEncoderPR = 570
     motorFrequency = 1600
@@ -56,12 +64,12 @@ class Robot:
     botServoPos = 15
     botServoMin = 91
     botServoRest = 293
-    botServoMax = 499
+    botServoMax = 490
 
     topServoPos = 0
-    topServoMin = 91
+    topServoMin = 100
     topServoRest = 360
-    topServoMax = 499
+    topServoMax = 490
 
     def __init__(self):
 
@@ -81,8 +89,8 @@ class Robot:
 
         GPIO.output(self. safeNumber, GPIO.LOW)
 
-        self.botServo.rest()
         self.topServo.rest()
+        self.botServo.rest()
 
     def setupBot(self):
 
@@ -103,6 +111,13 @@ class Robot:
 
     def moveCamera(self, state, value):
         print(state)
+
+        try:
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(self.safeNumber, GPIO.OUT)
+        except:
+            print("board already declared")
+
         GPIO.output(self. safeNumber, GPIO.LOW)
         if state == 'x':
             self.botServo.goto(value)
@@ -119,47 +134,146 @@ class Robot:
         GPIO.output(self.safeNumber, GPIO.LOW)
 
     def moveStraight(self, value):
-        print("original value: " + str(value))
+        self.curID = (self.curID + 1) % 500
+        taskID = self.curID
+
+        if (value == 0):
+            self.stopMotor("straight")
+            return
+
         try:
-            self.rightMotor.rotate(value)
-            self.leftMotor.rotate(value)
+            leftIncrement = 0.05 * (value / abs(value))
+            rightIncrement = 0.05 * (value / abs(value))
+
+            try:
+                GPIO.setmode(GPIO.BOARD)
+                GPIO.setup(self.safeNumber, GPIO.OUT)
+            except:
+                print("board already declared")
+
             GPIO.output(self. safeNumber, GPIO.LOW)
+
+            while ((self.rightMotor.curSpeed > (value + 2 * rightIncrement) or self.rightMotor.curSpeed < (value - 2 * rightIncrement)) and
+                    (self.leftMotor.curSpeed > (value + 2 * leftIncrement) or self.leftMotor.curSpeed < (value - 2 * leftIncrement)) and
+                    taskID == self.curID):
+                self.rightMotor.rotate(
+                    self.rightMotor.curSpeed + rightIncrement)
+                self.leftMotor.rotate(self.leftMotor.curSpeed + leftIncrement)
+
+                eventlet.sleep(2/20)
+
+            if (taskID == self.curID):
+                self.rightMotor.rotate(value)
+                self.leftMotor.rotate(value)
+
         except:
             print("failed to move")
             self.stopMotor()
 
     def rotate(self, value):
+        self.curID = (self.curID + 1) % 500
+        taskID = self.curID
+
+        if (value == 0):
+            self.stopMotor("turn")
+            return
+
         try:
-            self.rightMotor.rotate(value * -1)
-            self.leftMotor.rotate(value)
+            rightValue = value * -1
+
+            leftIncrement = 0.05 * (value / abs(value))
+            rightIncrement = 0.05 * (rightValue / abs(rightValue))
+
+            try:
+                GPIO.setmode(GPIO.BOARD)
+                GPIO.setup(self.safeNumber, GPIO.OUT)
+            except:
+                print("board already declared")
+
             GPIO.output(self. safeNumber, GPIO.LOW)
+
+            while ((self.rightMotor.curSpeed > (rightValue + 2 * rightIncrement) or self.rightMotor.curSpeed < (rightValue - 2 * rightIncrement)) and
+                    (self.leftMotor.curSpeed > (value + 2 * leftIncrement) or self.leftMotor.curSpeed < (value - 2 * leftIncrement)) and
+                    taskID == self.curID):
+                self.rightMotor.rotate(
+                    self.rightMotor.curSpeed + rightIncrement)
+                self.leftMotor.rotate(self.leftMotor.curSpeed + leftIncrement)
+
+                eventlet.sleep(2/20)
+
+            if (taskID == self.curID):
+                self.leftMotor.rotate(value)
+                self.rightMotor.rotate(rightValue)
         except:
             print("failed to move")
             self.stopMotor()
 
     def stopMotor(self, movementType="turn"):
+        self.curID = (self.curID + 1) % 500
+        taskID = self.curID
+
+        try:
+            if (self.leftMotor.curSpeed != 0):
+                leftIncrement = 0.05 * (self.leftMotor.curSpeed /
+                                        abs(self.leftMotor.curSpeed))
+            else:
+                leftIncrement = 0
+
+            if (self.rightMotor.curSpeed != 0):
+                rightIncrement = 0.05 * (self.rightMotor.curSpeed /
+                                         abs(self.rightMotor.curSpeed))
+            else:
+                rightIncrement = 0
+
+            while (abs(self.rightMotor.curSpeed) > rightIncrement and abs(self.leftMotor.curSpeed > leftIncrement) and
+                    taskID == self.curID):
+
+                self.rightMotor.rotate(
+                    self.rightMotor.curSpeed - rightIncrement)
+                self.leftMotor.rotate(self.leftMotor.curSpeed - leftIncrement)
+
+                eventlet.sleep(1/20)
+
+            if (taskID == self.curID):
+                distance1 = self.rightMotor.stop()
+                distance2 = self.leftMotor.stop()
+
+                if movementType != "turn":
+                    distance = (distance1 + distance2) / 2
+
+                    print(math.pi * 2 *
+                          (float(os.environ['WHEEL_RADIUS'])/12) * distance)
+
+        except:
+            print("DANGER failed to stop")
+            try:
+                handler(0, 0)
+            except:
+                print("DANGER DANGER DANGER DANGER everything failed")
+
+    def ebrake(self, movementType="turn"):
+        self.curID = (self.curID + 1) % 500
+        print("Emergency Stop")
         try:
             distance1 = self.rightMotor.stop()
             distance2 = self.leftMotor.stop()
-
             if movementType != "turn":
                 distance = (distance1 + distance2) / 2
 
                 print(math.pi * 2 *
                       (float(os.environ['WHEEL_RADIUS'])/12) * distance)
-
-                # function for tracking location
         except:
-            print("failed to stop")
+            print("DANGER failed to stop")
             try:
                 handler(0, 0)
             except:
-                print("everything failed")
+                print("DANGER everything failed")
 
 
 class Motor:
 
     maxSpeed = 4096
+    curSpeed = 0
 
     encoderTotal = 0
     lastEncoder = ''
@@ -189,25 +303,51 @@ class Motor:
         self.stop()
 
     def xCallback(self, _pin):
-        if self.lastEncoder == 'x':
-            self.encoderTotal += 2
+        if self.curSpeed > 0:
+            if self.lastEncoder == 'x':
+                self.encoderTotal += 2
+            else:
+                self.encoderTotal += 1
         else:
-            self.encoderTotal += 1
+            if self.lastEncoder == 'x':
+                self.encoderTotal -= 2
+            else:
+                self.encoderTotal -= 1
 
         self.lastEncoder = 'x'
 
     def yCallback(self, _pin):
-        if self.lastEncoder == 'y':
-            self.encoderTotal += 2
+        if self.curSpeed > 0:
+            if self.lastEncoder == 'y':
+                self.encoderTotal += 2
+            else:
+                self.encoderTotal += 1
         else:
-            self.encoderTotal += 1
+            if self.lastEncoder == 'y':
+                self.encoderTotal -= 2
+            else:
+                self.encoderTotal -= 1
 
         self.lastEncoder = 'y'
 
     def rotate(self, percent):
+
+        if (self.curSpeed - percent == 0):
+            return
+        elif(abs(percent) > 1):
+            return
+        elif (abs(self.curSpeed - percent) > 0.5):
+            print("DANGER speeding up by more than 5% {} - {} = {}".format(
+                self.curSpeed, percent, (self.curSpeed - percent)))
+            return
+        elif round(percent, 2) == 0.00:
+            self.curSpeed = self.curSpeed - percent
+            return
+
+        self.curSpeed = percent
+
         if self.reversed:
             percent = percent * -1
-
         if percent > 0:
             GPIO.output(self.dirPin, GPIO.HIGH)
         elif percent < 0:
@@ -219,16 +359,11 @@ class Motor:
         if power != 1 and power != 0:
             power = 1 - power
 
-        print("reversed: " + str(self.reversed) + " motor: " + str(self.motorPos) + "At speed input: " +
-              str(round(self.maxSpeed * power)) +
-              " percent: " + str(percent))
-
         self.pwmController.set_pwm(
             self.motorPos, round(self.maxSpeed * power), 0)
 
-        print(percent)
-
     def stop(self):
+        self.curSpeed = 0
         self.pwmController.set_pwm(self.motorPos, 0, 0)
         rotations = self.encoderTotal / self.encoderRot
 
@@ -263,13 +398,9 @@ class Servo:
             deviation = 0
             print(percent)
             if percent < 0:
-                print(self.servoMin)
                 deviation = (self.servoRest - self.servoMin) * percent
-                print(deviation)
             elif percent > 0:
                 deviation = (self.servoMax - self.servoRest) * percent
-                print(self.servoMax)
-                print(deviation)
 
             self.stop()
 
@@ -281,9 +412,6 @@ class Servo:
         interval = (self.servoPos - target) / abs(self.servoPos - target) * -1
 
         while not self.servoStop and not self.servoHold and self.servoPos != round(target):
-
-            print('position ' + str(self.servoPos) +
-                  ' target: ' + str(target))
 
             self.servoPos += interval
             self.pwmController.set_pwm(

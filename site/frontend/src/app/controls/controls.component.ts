@@ -13,7 +13,7 @@ export class ControlsComponent implements OnInit {
   handleKeyboardPress(event: KeyboardEvent) {
     if (!event.repeat) {
       const action: String = this.keyboardEnum[event.key];
-      if (action && !this.commandState.has(action)) {
+      if (action && !this.commandState.has(action.toLocaleLowerCase())) {
         try {
           this.commandState.set(action, true);
           if (action.includes('cam')) {
@@ -26,8 +26,12 @@ export class ControlsComponent implements OnInit {
             if (this.slider >= 5) {
               this.slider -= 5;
             }
+          } else if (action === 'centerCam') {
+            this.socketEmit('centerCam');
           } else if (action === 'binary') {
             this.onBinClick('True');
+          } else if (action === 'eBrake') {
+            this.socketEmit('eBrake');
           } else if (action === 'capture') {
             this.caputerImage();
           } else {
@@ -50,7 +54,12 @@ export class ControlsComponent implements OnInit {
         this.onCamClickR(action);
       } else if (action === 'binary') {
         this.onBinClick('False');
-      } else if (action.includes('speed') || action === 'capture') {
+      } else if (
+        action.includes('speed') ||
+        action === 'capture' ||
+        action === 'eBrake' ||
+        action === 'centerCam'
+      ) {
         return;
       } else if (action) {
         this.onClickR(action);
@@ -66,7 +75,7 @@ export class ControlsComponent implements OnInit {
     if (!this.intervalRunning) {
       this.gamepadInterval = setInterval(() => {
         this.updateStatus();
-      }, 900);
+      }, 100);
     }
   }
 
@@ -235,9 +244,8 @@ export class ControlsComponent implements OnInit {
 
       for (let i: number = 12; i <= 15; i++) {
         if (
-          !this.controllers[index].buttons[i] &&
           this.controllers[index].buttons[i] !=
-            this.prevControllers[index].buttons[i]
+          this.prevControllers[index].buttons[i]
         ) {
           movementChange = true;
         }
@@ -278,6 +286,12 @@ export class ControlsComponent implements OnInit {
             }
 
             break;
+          } else {
+            if (i < 14) {
+              this.socketEmit('stopMotors', 'straight');
+            } else {
+              this.socketEmit('stopMotors', 'turn');
+            }
           }
         }
       }
@@ -286,7 +300,7 @@ export class ControlsComponent implements OnInit {
         this.controllers[index].axes[2] !== this.prevControllers[index].axes[2]
       ) {
         if (this.controllers[index].axes[2]) {
-          this.socketEmit('camera', 'x', this.controllers[index].axes[2]);
+          this.socketEmit('camera', 'x', this.controllers[index].axes[2] * -1);
         } else {
           this.socketEmit('stopCam', 'x');
         }
@@ -296,19 +310,10 @@ export class ControlsComponent implements OnInit {
         this.controllers[index].axes[3] !== this.prevControllers[index].axes[3]
       ) {
         if (this.controllers[index].axes[3]) {
-          this.socketEmit('camera', 'y', this.controllers[index].axes[3]);
+          this.socketEmit('camera', 'y', this.controllers[index].axes[3] * -1);
         } else {
           this.socketEmit('stopCam', 'y');
         }
-      }
-
-      if (
-        this.controllers[index].axes[3] !==
-          this.prevControllers[index].axes[3] &&
-        Math.abs(this.controllers[index].axes[3]) > 0.15 &&
-        this.controllers[index].axes[3]
-      ) {
-        this.socketEmit('camera', 'y', this.controllers[index].axes[2] * -1);
       }
       this.prevControllers[index].updateController(gamepad);
     });
@@ -366,5 +371,7 @@ export class ControlsComponent implements OnInit {
     e: 'capture',
     r: 'speedUp',
     f: 'speedDown',
+    c: 'centerCam',
+    ' ': 'eBrake',
   });
 }

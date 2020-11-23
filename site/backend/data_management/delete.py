@@ -1,4 +1,5 @@
 from flask_cors import CORS
+from get import getOldest
 import shutil
 
 from flask import(
@@ -108,13 +109,10 @@ def garbageCollector():
         pipeID = oldest.get('PipeID')
 
         # Create and execute multiple queries to free up space
-        runQuery = deleteRunTask(db, vidID)
-        deleteIt(db, runQuery)
+        deleteRunTask(db, vidID)
 
-        vidQuery = deleteVideoTask(db, vidID)
-        deleteIt(db, vidQuery)
+        deleteVideoTask(db, vidID)
 
-        tagQuery = deleteTagTask(db, vidID)
-        deleteIt(db, tagQuery)
+        deleteTagTask(db, vidID)
 
     return

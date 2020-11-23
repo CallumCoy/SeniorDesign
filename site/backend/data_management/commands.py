@@ -9,6 +9,17 @@ socketio = SocketIO(cors_allowed_origins="*")
 roboto = Robot()
 
 
+@socketio.on('eBrake')
+def eBrake():
+    roboto.ebrake("turn")
+
+
+@socketio.on('centerCam')
+def centerCam():
+    roboto.topServo.rest()
+    roboto.botServo.rest()
+
+
 @socketio.on('binary')
 def binary(_state):
     print("binary pressed")
@@ -41,8 +52,6 @@ def speed(_state):
 
 @socketio.on('movement')
 def movement(state, value):
-    print("movement call state = " + str(state) + ', value = ' + str(value))
-
     if state == 'straight':
         socketio.start_background_task(roboto.moveStraight(value))
     else:
@@ -51,8 +60,6 @@ def movement(state, value):
 
 @socketio.on('stopMotors')
 def stopMotor(target):
-    print("stopping motors")
-
     if(target == None):
         socketio.start_background_task(roboto.stopMotor(movementType='turn'))
     else:
