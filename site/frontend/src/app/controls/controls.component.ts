@@ -26,6 +26,8 @@ export class ControlsComponent implements OnInit {
             if (this.slider >= 5) {
               this.slider -= 5;
             }
+          } else if (action === 'centerCam') {
+            this.socketEmit('centerCam');
           } else if (action === 'binary') {
             this.onBinClick('True');
           } else if (action === 'eBrake') {
@@ -55,7 +57,8 @@ export class ControlsComponent implements OnInit {
       } else if (
         action.includes('speed') ||
         action === 'capture' ||
-        action === 'eBrake'
+        action === 'eBrake' ||
+        action === 'centerCam'
       ) {
         return;
       } else if (action) {
@@ -368,6 +371,7 @@ export class ControlsComponent implements OnInit {
     e: 'capture',
     r: 'speedUp',
     f: 'speedDown',
+    c: 'centerCam',
     ' ': 'eBrake',
   });
 }

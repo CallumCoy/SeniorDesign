@@ -14,6 +14,12 @@ def eBrake():
     roboto.ebrake("turn")
 
 
+@socketio.on('centerCam')
+def centerCam():
+    roboto.topServo.rest()
+    roboto.botServo.rest()
+
+
 @socketio.on('binary')
 def binary(_state):
     print("binary pressed")

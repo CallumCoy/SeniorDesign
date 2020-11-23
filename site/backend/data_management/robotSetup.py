@@ -64,12 +64,12 @@ class Robot:
     botServoPos = 15
     botServoMin = 91
     botServoRest = 293
-    botServoMax = 499
+    botServoMax = 490
 
     topServoPos = 0
-    topServoMin = 91
+    topServoMin = 100
     topServoRest = 360
-    topServoMax = 499
+    topServoMax = 490
 
     def __init__(self):
 
@@ -89,8 +89,8 @@ class Robot:
 
         GPIO.output(self. safeNumber, GPIO.LOW)
 
-        self.botServo.rest()
         self.topServo.rest()
+        self.botServo.rest()
 
     def setupBot(self):
 
@@ -145,9 +145,6 @@ class Robot:
             leftIncrement = 0.05 * (value / abs(value))
             rightIncrement = 0.05 * (value / abs(value))
 
-            print("starting task {}".format(taskID))
-            print("current task ID {}".format(self.curID))
-
             try:
                 GPIO.setmode(GPIO.BOARD)
                 GPIO.setup(self.safeNumber, GPIO.OUT)
@@ -165,11 +162,7 @@ class Robot:
 
                 eventlet.sleep(2/20)
 
-            print("task {} ended".format(taskID))
-            print("current task ID {}".format(self.curID))
-
             if (taskID == self.curID):
-                print("I'm not meant to run")
                 self.rightMotor.rotate(value)
                 self.leftMotor.rotate(value)
 
@@ -199,9 +192,6 @@ class Robot:
 
             GPIO.output(self. safeNumber, GPIO.LOW)
 
-            print("starting task {}".format(taskID))
-            print("current task ID {}".format(self.curID))
-
             while ((self.rightMotor.curSpeed > (rightValue + 2 * rightIncrement) or self.rightMotor.curSpeed < (rightValue - 2 * rightIncrement)) and
                     (self.leftMotor.curSpeed > (value + 2 * leftIncrement) or self.leftMotor.curSpeed < (value - 2 * leftIncrement)) and
                     taskID == self.curID):
@@ -211,11 +201,7 @@ class Robot:
 
                 eventlet.sleep(2/20)
 
-            print("task {} ended".format(taskID))
-            print("current task ID {}".format(self.curID))
-
             if (taskID == self.curID):
-                print("I'm not meant to run")
                 self.leftMotor.rotate(value)
                 self.rightMotor.rotate(rightValue)
         except:
@@ -239,9 +225,6 @@ class Robot:
             else:
                 rightIncrement = 0
 
-            print("starting task {}".format(taskID))
-            print("current task ID {}".format(self.curID))
-
             while (abs(self.rightMotor.curSpeed) > rightIncrement and abs(self.leftMotor.curSpeed > leftIncrement) and
                     taskID == self.curID):
 
@@ -250,9 +233,6 @@ class Robot:
                 self.leftMotor.rotate(self.leftMotor.curSpeed - leftIncrement)
 
                 eventlet.sleep(1/20)
-
-            print("task {} ended".format(taskID))
-            print("current task ID {}".format(self.curID))
 
             if (taskID == self.curID):
                 distance1 = self.rightMotor.stop()
@@ -287,7 +267,7 @@ class Robot:
             try:
                 handler(0, 0)
             except:
-                print("DANGER DANGER DANGER DANGER everything failed")
+                print("DANGER everything failed")
 
 
 class Motor:
@@ -357,15 +337,12 @@ class Motor:
         elif(abs(percent) > 1):
             return
         elif (abs(self.curSpeed - percent) > 0.5):
-            print("DANGER DANGER DANGER DANGER DANGER speeding up by more than 5% {} - {} = {}".format(
+            print("DANGER speeding up by more than 5% {} - {} = {}".format(
                 self.curSpeed, percent, (self.curSpeed - percent)))
             return
         elif round(percent, 2) == 0.00:
             self.curSpeed = self.curSpeed - percent
             return
-
-        print("{} - {} = {}".format(
-            self.curSpeed, percent, (self.curSpeed - percent)))
 
         self.curSpeed = percent
 
@@ -386,7 +363,6 @@ class Motor:
             self.motorPos, round(self.maxSpeed * power), 0)
 
     def stop(self):
-        print("STOP")
         self.curSpeed = 0
         self.pwmController.set_pwm(self.motorPos, 0, 0)
         rotations = self.encoderTotal / self.encoderRot
@@ -422,13 +398,9 @@ class Servo:
             deviation = 0
             print(percent)
             if percent < 0:
-                print(self.servoMin)
                 deviation = (self.servoRest - self.servoMin) * percent
-                print(deviation)
             elif percent > 0:
                 deviation = (self.servoMax - self.servoRest) * percent
-                print(self.servoMax)
-                print(deviation)
 
             self.stop()
 
@@ -440,9 +412,6 @@ class Servo:
         interval = (self.servoPos - target) / abs(self.servoPos - target) * -1
 
         while not self.servoStop and not self.servoHold and self.servoPos != round(target):
-
-            print('position ' + str(self.servoPos) +
-                  ' target: ' + str(target))
 
             self.servoPos += interval
             self.pwmController.set_pwm(
