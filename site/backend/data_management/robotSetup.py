@@ -271,7 +271,9 @@ class Robot:
             except:
                 print("DANGER DANGER DANGER DANGER everything failed")
 
-    def eStop(self, movementType="turn"):
+    def ebrake(self, movementType="turn"):
+        self.curID = (self.curID + 1) % 500
+        print("Emergency Stop")
         try:
             distance1 = self.rightMotor.stop()
             distance2 = self.leftMotor.stop()

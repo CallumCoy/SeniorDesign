@@ -9,6 +9,11 @@ socketio = SocketIO(cors_allowed_origins="*")
 roboto = Robot()
 
 
+@socketio.on('eBrake')
+def eBrake():
+    roboto.ebrake("turn")
+
+
 @socketio.on('binary')
 def binary(_state):
     print("binary pressed")

@@ -13,7 +13,7 @@ export class ControlsComponent implements OnInit {
   handleKeyboardPress(event: KeyboardEvent) {
     if (!event.repeat) {
       const action: String = this.keyboardEnum[event.key];
-      if (action && !this.commandState.has(action)) {
+      if (action && !this.commandState.has(action.toLocaleLowerCase())) {
         try {
           this.commandState.set(action, true);
           if (action.includes('cam')) {
@@ -28,6 +28,8 @@ export class ControlsComponent implements OnInit {
             }
           } else if (action === 'binary') {
             this.onBinClick('True');
+          } else if (action === 'eBrake') {
+            this.socketEmit('eBrake');
           } else if (action === 'capture') {
             this.caputerImage();
           } else {
@@ -50,7 +52,11 @@ export class ControlsComponent implements OnInit {
         this.onCamClickR(action);
       } else if (action === 'binary') {
         this.onBinClick('False');
-      } else if (action.includes('speed') || action === 'capture') {
+      } else if (
+        action.includes('speed') ||
+        action === 'capture' ||
+        action === 'eBrake'
+      ) {
         return;
       } else if (action) {
         this.onClickR(action);
@@ -66,7 +72,7 @@ export class ControlsComponent implements OnInit {
     if (!this.intervalRunning) {
       this.gamepadInterval = setInterval(() => {
         this.updateStatus();
-      }, 250);
+      }, 100);
     }
   }
 
@@ -362,5 +368,6 @@ export class ControlsComponent implements OnInit {
     e: 'capture',
     r: 'speedUp',
     f: 'speedDown',
+    ' ': 'eBrake',
   });
 }
