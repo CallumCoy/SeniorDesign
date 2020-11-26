@@ -33,6 +33,7 @@
       </div>
       <div class="flex-grid">
         <div class="colSmall">
+          Pin
           <input
             class="pinned"
             type="checkbox"
@@ -60,7 +61,8 @@
         <div *ngFor="let tag of run.tags">
           <pre>
 Tagged Location {{ tag.Position }}
-Lat: {{ tag.Lat }}       Long: {{ tag.Longi }}</pre
+Lat: {{ tag.Lat }}       Long: {{ tag.Longi }}
+Dist: {{ tag.Distance }}ft     Time: {{ tag.VideoTime }}</pre
           >
           <div class="linkHolder">
             <a
