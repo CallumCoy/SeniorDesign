@@ -24,8 +24,11 @@
       <input
         #dir
         id="Direction"
-        type="text"
-        value="{{ this.newRun.Direction || '' }}"
+        type="number"
+        min="0"
+        max="360"
+        step="0.001"
+        value="{{ this.newRun.Direction || 0 }}"
       />
       <br />
       <label for="lat">Latitude: </label>
@@ -48,6 +51,9 @@
         value="{{ this.newRun.Longi || 0 }}"
       />
       <br />
+      <label for="record">Record: </label>
+      <input #record id="record" class="pinned" type="checkbox" />
+      <br />
       <br />
       <br />
 
@@ -60,7 +66,8 @@
             pipeID.value,
             dir.value,
             lat.value,
-            long.value
+            long.value,
+            record.checked
           )
         "
       >

@@ -34,15 +34,16 @@ export class StreamService {
   captureReturn() {
     return new Observable((observer: Observer<any>) => {
       this.socket.on('addTag', (data) => {
+        console.log(data);
         observer.next(data);
       });
     });
   }
 
-  startRecording() {
+  run(dir, lat, long, record) {
     if (!this.recording) {
       this.recording = true;
-      this.socket.emit('startRecording');
+      this.socket.emit('run', dir, lat, long, record);
     }
   }
 

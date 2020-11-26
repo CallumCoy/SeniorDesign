@@ -35,7 +35,6 @@ export class ToggleService {
       this.setButtonOp('');
     } else if (this.buttonOp.getValue() === '') {
       this.toggleHideNew();
-      this.streamService.startRecording();
       this.setButtonOp('End Run');
     } else {
       this.streamService.endRecording();

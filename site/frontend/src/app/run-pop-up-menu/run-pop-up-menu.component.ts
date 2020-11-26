@@ -3,6 +3,7 @@ import { ToggleService } from '../toggle.service';
 
 import { Run } from '../interfaces';
 import { RunService } from '../run.service';
+import { StreamService } from '../stream.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +20,8 @@ export class RunPopUpMenuComponent implements OnInit {
 
   constructor(
     private runService: RunService,
-    private toggleService: ToggleService
+    private toggleService: ToggleService,
+    private streamService: StreamService
   ) {}
 
   ngOnInit(): void {
@@ -32,7 +34,7 @@ export class RunPopUpMenuComponent implements OnInit {
     this.temp = this.runService.createEmptyRun();
   }
 
-  comfirmBut(name, driverName, pipeID, dir, lat, long) {
+  comfirmBut(name, driverName, pipeID, dir, lat, long, record) {
     this.temp.Name = name;
     this.temp.DriverName = driverName;
     this.temp.PipeID = pipeID;
@@ -40,6 +42,8 @@ export class RunPopUpMenuComponent implements OnInit {
     this.temp.Lat = lat;
     this.temp.Longi = long;
     this.temp.Tagged = 0;
+
+    this.streamService.run(dir, lat, long, record);
 
     this.runService.setNewRun(this.temp);
 

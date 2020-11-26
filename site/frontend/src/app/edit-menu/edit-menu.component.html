@@ -30,8 +30,11 @@
       <input
         #dir
         id="Direction"
-        type="text"
-        value="{{ this.targRun.Direction || '' }}"
+        type="number"
+        min="0"
+        max="360"
+        step="0.001"
+        value="{{ this.targRun.Direction || 0 }}"
       />
       <br />
       <label for="lat">Latitude Locked: </label>

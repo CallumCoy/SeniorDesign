@@ -12,6 +12,7 @@ import cv2
 import os
 from dotenv import load_dotenv
 from video import Video
+from commands import roboto
 class MultiCam(object):
 
     codec = 'avc1'
@@ -20,8 +21,12 @@ class MultiCam(object):
     tagCount = 0
 
     recording = False
+    allowCapture = False
 
     flip = False
+
+    width = 1280
+    height = 720
 
     frontCamIndex = 1
     frontCamJetson = True
@@ -32,8 +37,6 @@ class MultiCam(object):
     backCamJetson = True
     backCamFlip = 0
     backCamAllowFocus = False
-
-    camFPS = 10
 
     yOffset = 0
     xOffset = 0
@@ -66,6 +69,10 @@ class MultiCam(object):
 
         self.generatOverlayValues()
 
+    def __delete__(self, instance):
+        del self.frontCam
+        del self.backCam
+
     def generatOverlayValues(self):
 
         if ('CAM_RATIO' in os.environ):
@@ -76,7 +83,11 @@ class MultiCam(object):
         print('CAMRATIO = ' + os.environ['CAM_RATIO'])
 
         try:
+            self.width = self.frontCam.get(cv2.CAP_PROP_FRAME_WIDTH)
+            self.height = self.frontCam.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
             sample1 = self.frontCam.genCam()
+
             self.yOffset = int(
                 sample1.shape[0] * (1 - float(os.environ['CAM_RATIO'])))
             self.xOffset = int(
@@ -131,8 +142,7 @@ class MultiCam(object):
 
         return mainImage
 
-    def capture(self):
-        img = self.generateFinalImage()
+    def capture(self, img):
         cv2.imwrite('temp/tag{}.jpg'.format(self.tagCount), img)
 
         timerCapture = time.time() - self.recordTime
@@ -140,24 +150,19 @@ class MultiCam(object):
         # location Request
         # send frontend details
 
-        return ("addTag",
-                {"Position": self.tagCount,
-                 "Lat": 0,
-                 "Longi": 0,
-                 "VideoTime": timerCapture})
-
         self.tagCount += 1
 
+        return (self.tagCount, roboto.lat, roboto.long, roboto.distanceTracking, timerCapture)
+
     def startRecording(self):
-        self.tagCount = 0
-        self.recordTime = time.time()
+        print("starting up recording")
 
         cv2.imwrite('temp/imageFront.jpg', self.generateFinalImage())
-        fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-        self.record = cv2.VideoWriter('temp/outputtedVideo.{}'.format(self.videoType),
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
+        self.record = cv2.VideoWriter('temp/outputtedVideo.mp4',
                                       fourcc,
                                       int(os.environ.get("FPS")),
-                                      (self.xDim, self.yDim))
+                                      (self.width, self.height))
         self.recording = True
 
     def writeVid(self, frame):

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from flask_socketio import emit
 from flask import Blueprint, jsonify, request, render_template, Response
 from flask_cors import CORS
+import numpy as np
 import eventlet
 import base64
 import cv2
@@ -23,40 +24,39 @@ CORS(bp)
 COUNT = 0
 CAMERA = None
 LASTPING = time.time()
+CHECKRUNNING = False
+CAPTURE = False
 
 
 @socketio.on('connect')
 def on_connect():
-    print('[INFO] WebClient connected.')
     global COUNT
+    print('[INFO] WebClient connected.')
     global LASTPING
 
     COUNT = COUNT + 1
     LASTPING = time.time()
-
-    if COUNT == 1:
-        checkComp()
-        eventlet.sleep(1)
-        socketio.start_background_task(startCams())
 
 
 @socketio.on('disconnect')
 def on_disconnect():
     print('[INFO] WebClient disconnected.')
     global COUNT
-    global CAMERA
 
     COUNT = COUNT - 1
+    print(COUNT)
     roboto.stopMotor("turn")
 
 
 @bp.route('/check', methods=(['POST']))
 def check():
     global LASTPING
+    global CHECKRUNNING
 
     LASTPING = time.time()
 
-    if LASTPING - time.time() > 1:
+    if not CHECKRUNNING:
+        roboto.stopMotor("turn")
         checkComp()
 
     return jsonify({})
@@ -64,18 +64,23 @@ def check():
 
 def checkComp():
     global LASTPING
-    while time.time() - LASTPING <= 1:
-        eventlet.sleep(0.9)
+    global CHECKRUNNING
+
+    CHECKRUNNING = True
+    while time.time() - LASTPING <= 2.2:
+        eventlet.sleep(1)
+
     print("failed to get ping within alloted time")
-    roboto.stopMotor("turn")
+
+    CHECKRUNNING = False
+    roboto.ebrake()
 
 
 @socketio.on('capture')
 def capture():
-    global CAMERA
+    global CAPTURE
 
-    if (COUNT > 0):
-        CAMERA.capture()
+    CAPTURE = True
 
 
 @socketio.on('refocus')
@@ -89,21 +94,35 @@ def refocus():
 @socketio.on('swapImage')
 def swapImage():
     global CAMERA
+    if CAMERA is not None:
+        CAMERA.flip = not CAMERA.flip
 
-    CAMERA.flip = not CAMERA.flip
 
-
-@socketio.on('startRecording')
-def startRecording():
+@socketio.on('run')
+def startRecording(bearing, lat, longi, record):
     global CAMERA
     tempFileManger.clearAll()
-    CAMERA.startRecording()
+
+    if CAMERA is not None and not CAMERA.recording and record:
+        CAMERA.startRecording()
+
+    if CAMERA is not None and not CAMERA.recording:
+        CAMERA.tagCount = 0
+        CAMERA.allowCapture = True
+        CAMERA.recordTime = time.time()
+        roboto.lat = lat
+        roboto.long = longi
+        roboto.bearing = bearing
 
 
 @socketio.on('endRecording')
 def endRecording():
     global CAMERA
-    CAMERA.stopWriting()
+
+    if CAMERA is not None and CAMERA.recording:
+        CAMERA.stopRecording()
+
+    CAMERA.allowCapture = False
 
 
 def startCams():
@@ -112,41 +131,54 @@ def startCams():
 
     REBOOT = False
 
-    print(COUNT)
-
     if (COUNT > 0 and CAMERA is None):
         CAMERA = MultiCam()
 
-    eventlet.sleep()
+    eventlet.sleep(1.5)
 
 
 def getCams():
     global CAMERA
-    print("test")
+    global CAPTURE
 
     if CAMERA is None:
         startCams()
 
-    while COUNT > 0:
-        eventlet.sleep()
+    lastSave = time.time() - 1
+
+    while CAMERA is not None and COUNT > 0:
         # try:
-        image = cv2.imencode('.jpg', CAMERA.generateFinalImage())
 
-        if CAMERA.recording:
-            CAMERA.writeVid(image)
+        image = CAMERA.generateFinalImage()
 
-        image = image[1].tobytes()
+        if CAMERA.recording and time.time() - lastSave > 1/20:
+            socketio.start_background_task(
+                CAMERA.writeVid, image)
+            lastSave = time.time()
+
+        if CAPTURE and CAMERA.allowCapture:
+            CAPTURE = False
+            (tagNum, lat, longi, dist, timerCapture) = CAMERA.capture(image)
+            socketio.emit(socketio.emit("addTag",
+                                        {"Position": tagNum,
+                                         "Lat": lat,
+                                         "Longi": longi,
+                                         "Distance": dist,
+                                         "VideoTime": timerCapture}))
+        elif CAPTURE:
+            CAPTURE = False
+
+        image = cv2.imencode('.jpg', image)[1].tobytes()
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
+        eventlet.sleep()
+
         # except:
         #    print('failed to create stream')
 
-    try:
-        if CAMERA and COUNT > 0:
-            getCams()
-    except:
-        print("Camera deleted unexpectedly")
+    del CAMERA
+    CAMERA = None
 
 
 @bp.route('/')
@@ -158,7 +190,6 @@ def index():
 @bp.route('/video_feed')
 def showCams():
     """Video streaming route. Put this in the src attribute of an img tag."""
-    print('test1')
     return Response(getCams(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
