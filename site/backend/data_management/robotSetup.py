@@ -8,6 +8,8 @@ import eventlet
 import Jetson.GPIO as GPIO
 import Adafruit_PCA9685
 
+from locationTracking import pointRadialDistance
+
 
 def handler(_signalRecieved='', _frame=''):
     print("shutting motors off")
@@ -37,6 +39,11 @@ class Robot:
     safeNumber = 7
 
     curID = 0
+
+    distanceTracking = 0
+    lat = 0
+    long = 0
+    bearing = 0
 
     motorEncoderPR = 570
     motorFrequency = 1600
@@ -154,8 +161,8 @@ class Robot:
 
             GPIO.output(self. safeNumber, GPIO.LOW)
 
-            while ((self.rightMotor.curSpeed > (value + 2 * rightIncrement) or self.rightMotor.curSpeed < (value - 2 * rightIncrement)) and
-                    (self.leftMotor.curSpeed > (value + 2 * leftIncrement) or self.leftMotor.curSpeed < (value - 2 * leftIncrement)) and
+            while ((abs(self.rightMotor.curSpeed) < abs(value - 2 * rightIncrement)) and
+                    (abs(self.leftMotor.curSpeed) < abs(value - 2 * leftIncrement)) and
                     taskID == self.curID):
                 self.rightMotor.rotate(
                     self.rightMotor.curSpeed + rightIncrement)
@@ -193,8 +200,8 @@ class Robot:
 
             GPIO.output(self. safeNumber, GPIO.LOW)
 
-            while ((self.rightMotor.curSpeed > (rightValue + 2 * rightIncrement) or self.rightMotor.curSpeed < (rightValue - 2 * rightIncrement)) and
-                    (self.leftMotor.curSpeed > (value + 2 * leftIncrement) or self.leftMotor.curSpeed < (value - 2 * leftIncrement)) and
+            while ((abs(self.rightMotor.curSpeed) < abs(rightValue - 2 * rightIncrement)) and
+                   (abs(self.leftMotor.curSpeed) < abs(value - 2 * leftIncrement)) and
                     taskID == self.curID):
                 self.rightMotor.rotate(
                     self.rightMotor.curSpeed + rightIncrement)
@@ -226,7 +233,7 @@ class Robot:
             else:
                 rightIncrement = 0
 
-            while (abs(self.rightMotor.curSpeed) > rightIncrement and abs(self.leftMotor.curSpeed > leftIncrement) and
+            while (abs(self.rightMotor.curSpeed) > abs(rightIncrement) and abs(self.leftMotor.curSpeed) > abs(leftIncrement) and
                     taskID == self.curID):
 
                 self.rightMotor.rotate(
@@ -242,8 +249,13 @@ class Robot:
                 if movementType != "turn":
                     distance = (distance1 + distance2) / 2
 
+                    self.distanceTracking += distance
+
                     print(math.pi * 2 *
                           (float(os.environ['WHEEL_RADIUS'])/12) * distance)
+
+                    (self.lat, self.long) = pointRadialDistance(
+                        self.lat, self.long, self.bearing, distance)
 
         except:
             print("DANGER failed to stop")
@@ -261,8 +273,13 @@ class Robot:
             if movementType != "turn":
                 distance = (distance1 + distance2) / 2
 
+                self.distanceTracking += distance
+
                 print(math.pi * 2 *
                       (float(os.environ['WHEEL_RADIUS'])/12) * distance)
+
+            (self.lat, self.long) = pointRadialDistance(
+                self.lat, self.long, self.bearing, distance)
         except:
             print("DANGER failed to stop")
             try:
@@ -395,6 +412,8 @@ class Servo:
 
     def goto(self, percent):
         if not self.servoHold:
+            if(abs(percent) > 1):
+                return
             self.servoStop = True
             deviation = 0
             print(percent)
