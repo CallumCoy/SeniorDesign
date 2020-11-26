@@ -230,7 +230,7 @@ export class RunService {
       Name: '',
       DriverName: '',
       PipeID: '',
-      Direction: '',
+      Direction: 0,
       Tagged: 0,
       Lat: 0,
       Longi: 0,

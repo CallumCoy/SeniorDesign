@@ -74,9 +74,6 @@ def newRun():
     tags = userInput['tags']
     error = None
 
-    print(type(tags))
-    print(tags[0])
-
     if not pipeID:
         error = 'PipeID is required.'
     elif not direction:
@@ -106,11 +103,9 @@ def newRun():
         videoData = getVideo(db, videoID)
 
         for tag in tags:
-            print(type(tag))
-            query = ("INSERT INTO TaggedLocs (Position, Lat, Longi, VideoTime)"
-                     "VALUES ({}, {}, {}, {})".format(
-                         tag["Position"], tag["Lat"], tag["Longi"], tag["VideoTime"]))
-            print(query)
+            query = ("INSERT INTO TaggedLocs (Position, Lat, Longi, Distance, VideoTime)"
+                     "VALUES ({}, {}, {}, {}, {})".format(
+                         tag["Position"], tag["Lat"], tag["Longi"], tag["Distance"], tag["VideoTime"]))
             tagID = sendCommand(db, query)
 
             query = ("INSERT INTO VideoToTags (VideoID, TagID)"

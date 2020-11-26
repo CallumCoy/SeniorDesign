@@ -1,7 +1,7 @@
 export interface Run {
   Id?: number;
   PipeID: string;
-  Direction: string; // does this want to be number or string?
+  Direction: number; // does this want to be number or string?
   ShowRun: Boolean;
   ShowTag: Boolean;
   Name?: string;
@@ -19,6 +19,7 @@ export interface Tag {
   Position: number;
   Lat: number;
   Longi: number;
+  Dist?: number;
   VideoTime?: number;
 }
 
