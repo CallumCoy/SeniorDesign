@@ -59,7 +59,7 @@ export class AppComponent {
 
     this.checkInterval = setInterval(() => {
       this.pingBackend();
-    }, 850);
+    }, 2000);
 
     this.toggleService.getButtonOp().subscribe((value) => {
       this.operation = value;
