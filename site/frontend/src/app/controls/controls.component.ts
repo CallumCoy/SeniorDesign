@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { StreamService } from '../stream.service';
 import { Controller } from '../classes';
+import { ToggleService } from '../toggle.service';
 
 @Component({
   selector: 'app-controls',
@@ -12,33 +13,35 @@ export class ControlsComponent implements OnInit {
   @HostListener('document:keydown', ['$event'])
   handleKeyboardPress(event: KeyboardEvent) {
     if (!event.repeat) {
-      const action: String = this.keyboardEnum[event.key];
-      if (action && !this.commandState.has(action.toLocaleLowerCase())) {
-        try {
-          this.commandState.set(action, true);
-          if (action.includes('cam')) {
-            this.onCamClickD(action);
-          } else if (action === 'speedUp') {
-            if (this.slider <= 95) {
-              this.slider += 5;
+      if (!this.toggleService.hideEdit && !this.toggleService.hideNew) {
+        const action: String = this.keyboardEnum[event.key];
+        if (action && !this.commandState.has(action.toLocaleLowerCase())) {
+          try {
+            this.commandState.set(action, true);
+            if (action.includes('cam')) {
+              this.onCamClickD(action);
+            } else if (action === 'speedUp') {
+              if (this.slider <= 95) {
+                this.slider += 5;
+              }
+            } else if (action === 'speedDown') {
+              if (this.slider >= 5) {
+                this.slider -= 5;
+              }
+            } else if (action === 'centerCam') {
+              this.socketEmit('centerCam');
+            } else if (action === 'binary') {
+              this.onBinClick('True');
+            } else if (action === 'eBrake') {
+              this.socketEmit('eBrake');
+            } else if (action === 'capture') {
+              this.caputerImage();
+            } else {
+              this.onClickD(action);
             }
-          } else if (action === 'speedDown') {
-            if (this.slider >= 5) {
-              this.slider -= 5;
-            }
-          } else if (action === 'centerCam') {
-            this.socketEmit('centerCam');
-          } else if (action === 'binary') {
-            this.onBinClick('True');
-          } else if (action === 'eBrake') {
-            this.socketEmit('eBrake');
-          } else if (action === 'capture') {
-            this.caputerImage();
-          } else {
-            this.onClickD(action);
+          } catch {
+            console.log("doesn't exist");
           }
-        } catch {
-          console.log("doesn't exist");
         }
       }
     }
@@ -97,7 +100,11 @@ export class ControlsComponent implements OnInit {
   prevControllers: Controller[] = [];
   slider: number = 50;
 
-  constructor(private socket: Socket, private streamService: StreamService) {}
+  constructor(
+    private socket: Socket,
+    private streamService: StreamService,
+    private toggleService: ToggleService
+  ) {}
 
   ngOnInit(): void {
     // get speed from python
