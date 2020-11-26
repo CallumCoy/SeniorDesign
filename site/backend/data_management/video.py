@@ -27,7 +27,6 @@ class Video(object):
     reboot = False
     cameraTarg = None
     captureDev = None
-    recording = False
     frameWidth = 1280
     frameHeight = 720
     recordTime = time.time()
@@ -64,9 +63,6 @@ class Video(object):
             print('calling camera reboot')
             self.reboot = True
             return
-
-        if self.recording:
-            self.writeVid(frame)
 
         if not self.jetson:
             eventlet.sleep(1/self.fps)
