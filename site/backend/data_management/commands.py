@@ -16,8 +16,9 @@ def eBrake():
 
 @socketio.on('centerCam')
 def centerCam():
-    roboto.topServo.rest()
+    roboto.topServo.goto(-0.5)
     roboto.botServo.rest()
+    roboto.topServo.rest()
 
 
 @socketio.on('binary')

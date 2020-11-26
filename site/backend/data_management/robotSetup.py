@@ -89,8 +89,9 @@ class Robot:
 
         GPIO.output(self. safeNumber, GPIO.LOW)
 
-        self.topServo.rest()
+        self.topServo.goto(-0.5)
         self.botServo.rest()
+        self.topServo.rest()
 
     def setupBot(self):
 
