@@ -13,9 +13,12 @@ export class ControlsComponent implements OnInit {
   @HostListener('document:keydown', ['$event'])
   handleKeyboardPress(event: KeyboardEvent) {
     if (!event.repeat) {
-      if (!this.toggleService.hideEdit && !this.toggleService.hideNew) {
-        const action: String = this.keyboardEnum[event.key];
-        if (action && !this.commandState.has(action.toLocaleLowerCase())) {
+      if (
+        this.toggleService.hideEdit.value &&
+        this.toggleService.hideNew.value
+      ) {
+        const action: String = this.keyboardEnum[event.key.toLowerCase()];
+        if (action) {
           try {
             this.commandState.set(action, true);
             if (action.includes('cam')) {
@@ -31,7 +34,7 @@ export class ControlsComponent implements OnInit {
             } else if (action === 'centerCam') {
               this.socketEmit('centerCam');
             } else if (action === 'binary') {
-              this.onBinClick('True');
+              this.onBinClick(1);
             } else if (action === 'eBrake') {
               this.socketEmit('eBrake');
             } else if (action === 'capture') {
@@ -50,13 +53,13 @@ export class ControlsComponent implements OnInit {
   @HostListener('document:keyup', ['$event'])
   handleKeyboardlift(event: KeyboardEvent) {
     try {
-      const action: String = this.keyboardEnum[event.key];
+      const action: String = this.keyboardEnum[event.key.toLowerCase()];
       this.commandState.delete(action);
 
       if (action.includes('cam')) {
         this.onCamClickR(action);
       } else if (action === 'binary') {
-        this.onBinClick('False');
+        this.onBinClick(0);
       } else if (
         action.includes('speed') ||
         action === 'capture' ||
@@ -239,12 +242,12 @@ export class ControlsComponent implements OnInit {
           this.prevControllers[index].buttons[7] &&
         this.controllers[index].buttons[7]
       ) {
-        this.socketEmit('binary', 'True');
+        this.socketEmit('binary', 1);
       } else if (
         this.controllers[index].buttons[7] !==
         this.prevControllers[index].buttons[7]
       ) {
-        this.socketEmit('binary', 'False');
+        this.socketEmit('binary', 0);
       }
 
       let movementChange: boolean = false;
@@ -342,7 +345,11 @@ export class ControlsComponent implements OnInit {
     });
   }
 
-  socketEmit(channel: string, command?: string, args?: Number | String) {
+  socketEmit(
+    channel: string,
+    command?: Number | String,
+    args?: Number | String
+  ) {
     if (channel === 'stop') {
       this.socket.emit(channel);
     } else if (channel === 'stopMotors') {
@@ -370,10 +377,10 @@ export class ControlsComponent implements OnInit {
     a: 'left',
     d: 'right',
     s: 'back',
-    ArrowUp: 'camUp',
-    ArrowLeft: 'camLeft',
-    ArrowRight: 'camRight',
-    ArrowDown: 'camDown',
+    arrowup: 'camUp',
+    arrowleft: 'camLeft',
+    arrowright: 'camRight',
+    arrowdown: 'camDown',
     q: 'binary',
     e: 'capture',
     r: 'speedUp',
