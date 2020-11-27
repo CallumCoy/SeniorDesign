@@ -31,28 +31,114 @@
         value="{{ this.newRun.Direction || 0 }}"
       />
       <br />
-      <label for="lat">Latitude: </label>
-      <input
-        #lat
-        id="lat"
-        type="number"
-        min="-90"
-        max="90"
-        value="{{ this.newRun.Lat || 0 }}"
-      />
+
+      <div class="flex-grid">
+        <div class="col">Latitude:</div>
+        <div class="col">Minutes:</div>
+        <div class="col">Seconds:</div>
+      </div>
+
+      <div class="flex-grid">
+        <div class="col">
+          <div class="split">
+            <input
+              #lat
+              class="split"
+              id="lat"
+              type="number"
+              min="-90"
+              max="90"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+        <div class="col">
+          <div class="split">
+            <input
+              #latM
+              class="split"
+              id="lat"
+              type="number"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+        <div class="col">
+          <div class="split">
+            <input
+              #latS
+              class="split"
+              id="latS"
+              type="number"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+      </div>
+      <select #latType id="latType">
+        <option value="0">None</option>
+        <option value="1">North</option>
+        <option value="-1">South</option>
+      </select>
       <br />
-      <label for="long">Longitude: </label>
-      <input
-        #long
-        id="long"
-        type="number"
-        min="-180"
-        max="180"
-        value="{{ this.newRun.Longi || 0 }}"
-      />
+
+      <div class="flex-grid">
+        <div class="col">Longitude:</div>
+        <div class="col">Minutes:</div>
+        <div class="col">Seconds:</div>
+      </div>
+
+      <div class="flex-grid">
+        <div class="col">
+          <div class="split">
+            <input
+              #long
+              class="split"
+              id="long"
+              type="number"
+              min="-180"
+              max="180"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+        <div class="col">
+          <div class="split">
+            <input
+              #longM
+              class="split"
+              id="longM"
+              type="number"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+        <div class="col">
+          <div class="split">
+            <input
+              #longS
+              class="split"
+              id="longS"
+              type="number"
+              value="{{ this.newRun.Lat || 0 }}"
+            />
+          </div>
+        </div>
+      </div>
+      <select #longType id="longType">
+        <option value="0">None</option>
+        <option value="1">West</option>
+        <option value="-1">East</option>
+      </select>
       <br />
       <label for="record">Record: </label>
-      <input #record id="record" class="pinned" type="checkbox" />
+      <input
+        #record
+        id="record"
+        class="pinned"
+        type="checkbox"
+        style="width: auto"
+      />
       <br />
       <br />
       <br />
@@ -66,7 +152,13 @@
             pipeID.value,
             dir.value,
             lat.value,
+            latM.value,
+            latS.value,
+            latType.value,
             long.value,
+            longM.value,
+            longS.value,
+            longType.value,
             record.checked
           )
         "

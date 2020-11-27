@@ -34,16 +34,35 @@ export class RunPopUpMenuComponent implements OnInit {
     this.temp = this.runService.createEmptyRun();
   }
 
-  comfirmBut(name, driverName, pipeID, dir, lat, long, record) {
+  comfirmBut(
+    name,
+    driverName,
+    pipeID,
+    dir,
+    lat,
+    latM,
+    latS,
+    latType,
+    long,
+    longM,
+    longS,
+    longType,
+    record
+  ) {
     this.temp.Name = name;
     this.temp.DriverName = driverName;
     this.temp.PipeID = pipeID;
     this.temp.Direction = dir;
-    this.temp.Lat = lat;
-    this.temp.Longi = long;
+    this.temp.Lat = this.todegrees(Number(lat), latM, latS, Number(latType));
+    this.temp.Longi = this.todegrees(
+      Number(long),
+      longM,
+      longS,
+      Number(longType)
+    );
     this.temp.Tagged = 0;
 
-    this.streamService.run(dir, lat, long, record);
+    this.streamService.run(dir, this.temp.Lat, this.temp.Longi, record);
 
     this.runService.setNewRun(this.temp);
 
@@ -53,5 +72,27 @@ export class RunPopUpMenuComponent implements OnInit {
   cancelBut() {
     this.toggleService.setButtonOp('New Run');
     this.toggleService.toggleHideNew();
+  }
+
+  todegrees(baseDeg, minutes?, seconds?, sign?) {
+    const degMinutes = (minutes || 0) / 60;
+    const degSeconds = (seconds || 0) / 3600;
+    const degSign = sign || 0;
+
+    if (degSign > 0) {
+      return Math.abs(baseDeg) + degMinutes + degSeconds;
+    } else if (degSign === 0) {
+      if (baseDeg != 0) {
+        return (
+          baseDeg +
+          degMinutes * (baseDeg / Math.abs(baseDeg)) +
+          degSeconds * (baseDeg / Math.abs(baseDeg))
+        );
+      } else {
+        return baseDeg + degMinutes + degSeconds;
+      }
+    } else {
+      return Math.abs(baseDeg) * -1 - degMinutes - degSeconds;
+    }
   }
 }

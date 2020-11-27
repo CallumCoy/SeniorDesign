@@ -64,6 +64,11 @@ class Robot:
     motor2EncoderXPin = 11
     motor2EncoderYPin = 12
 
+    # binary
+    binaryLoc = 11
+    binaryReversed = False
+    binaryDir = 37
+
     servofrequency = 60
     servoAddress = 0x40
     servoBusNum = 1
@@ -86,6 +91,9 @@ class Robot:
                                 self.motorBusNum, self.rightMotorLoc, self.motor1DIR, self.rightMotoReversed, self.motorFrequency)
         self.leftMotor = Motor(self.motor2EncoderXPin, self.motor2EncoderYPin, self.motorEncoderPR, self.motorAddress,
                                self.motorBusNum, self.leftMotorLoc, self.motor2DIR, self.leftMotoReversed, self.motorFrequency)
+
+        self.binary = BinaryTool(self.motorAddress, self.motorBusNum, self.binaryLoc,
+                                 self.binaryDir, self.binaryReversed, self.motorFrequency)
 
         self.botServo = Servo(self.botServoMin, self.botServoRest, self.botServoMax,
                               self.botServoPos, self.servoAddress, self.servoBusNum, self.servofrequency)
@@ -110,6 +118,7 @@ class Robot:
 
         GPIO.setup(self.motor1DIR, GPIO.OUT)
         GPIO.setup(self.motor2DIR, GPIO.OUT)
+        GPIO.setup(self.binaryDir, GPIO.OUT)
         GPIO.setup(self.motor1EncoderXPin, GPIO.IN)
         GPIO.setup(self.motor1EncoderYPin, GPIO.IN)
         GPIO.setup(self.motor2EncoderXPin, GPIO.IN)
@@ -451,3 +460,55 @@ class Servo:
 
     def servoHoldToggle(self):
         self.servoHold = not self.servoHold
+
+
+class BinaryTool():
+    maxSpeed = 4096
+    curState = 0
+
+    def __init__(self, address, busNum, motorPos, dirPin, reversedDir, frequency):
+        self.pwmController = Adafruit_PCA9685.PCA9685(
+            address=address, busnum=busNum)
+        self.pwmController.set_pwm_freq(frequency)
+
+        self.motorPos = motorPos
+        self.dirPin = dirPin
+        self.reversed = reversedDir
+
+    def on(self, percent):
+        if (self.curState - percent == 0):
+            return
+        elif(abs(percent) > 1):
+            return
+        # Following can be implemented if you want the binary to not change too fast
+        # elif (abs(self.curState - percent) > 0.5):
+        #    print("DANGER speeding up by more than 5% {} - {} = {}".format(
+        #        self.curState, percent, (self.curState - percent)))
+        #    return
+        elif round(percent, 2) == 0.00:
+            self.curState = self.curState - percent
+            return
+
+        self.curState = percent
+
+        if self.reversed:
+            percent = percent * -1
+        if percent > 0:
+            GPIO.output(self.dirPin, GPIO.HIGH)
+        elif percent < 0:
+            GPIO.output(self.dirPin, GPIO.LOW)
+        else:
+            return
+
+        power = abs(percent)
+
+        # gets the complement of the number(not sure why the controller works in semi reverse but it does)
+        if power != 1 and power != 0:
+            power = 1 - power
+
+        self.pwmController.set_pwm(
+            self.motorPos, round(self.maxSpeed * power), 0)
+
+    def stop(self):
+        self.curState = 0
+        self.pwmController.set_pwm(self.motorPos, 0, 0)

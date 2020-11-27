@@ -107,9 +107,9 @@
     <div class="col">
       <button
         class="action"
-        (mousedown)="onBinClick('True')"
-        (mouseup)="onClickR('False')"
-        (mouseleave)="onClickR('False')"
+        (mousedown)="onBinClick(1)"
+        (mouseup)="onBinClick(0)"
+        (mouseleave)="onBinClick(0)"
       ></button>
     </div>
     <div class="col">
@@ -242,7 +242,7 @@
     <div class="col"></div>
     <div class="colSmall"></div>
     <div class="colLong">
-      <a class="button" (click)="refocus()"> refocus </a>
+      <a class="button" (click)="refocus()" hidden> refocus </a>
     </div>
     <div class="colSmall"></div>
   </div>

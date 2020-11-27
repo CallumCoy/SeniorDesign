@@ -16,11 +16,10 @@ div.container {
 }
 
 div.container input {
-  width: 100%;
   text-align: center;
   clear: both;
 }
 
-input {
-  width: auto;
+div.split {
+  width: 80%;
 }
