@@ -253,6 +253,8 @@ export class ControlsComponent implements OnInit {
       let movementChange: boolean = false;
 
       for (let i: number = 12; i <= 15; i++) {
+        console.log(i);
+        console.log(this.controllers[index].buttons[i]);
         if (
           this.controllers[index].buttons[i] !=
           this.prevControllers[index].buttons[i]

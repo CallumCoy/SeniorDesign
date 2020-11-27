@@ -66,26 +66,10 @@ export class Controller {
       this.buttons[11] = controller.buttons[10].value;
       this.buttons[16] = controller.buttons[8].value;
     }
-    this.buttons[12] = Math.max(0, controller.axes[6].valueOf()) > 0.15 ? 1 : 0;
-    this.buttons[13] =
-      Math.max(0, -1 * controller.axes[6].valueOf()) > 0.15 ? 1 : 0;
-    this.buttons[14] = Math.max(0, controller.axes[7].valueOf()) > 0.15 ? 1 : 0;
-    this.buttons[15] =
-      Math.max(0, -1 * controller.axes[7].valueOf()) > 0.15 ? 1 : 0;
-
-    for (let j: number = 0; j < 2; j++) {
-      let input = controller.axes[j + 6].valueOf();
-      if (input <= -0.15) {
-        this.buttons[12 + j] = 0;
-        this.buttons[12 + j] = 1;
-      } else if (input >= 0.15) {
-        this.buttons[12 + j] = 1;
-        this.buttons[12 + j] = 0;
-      } else {
-        this.buttons[12 + j] = 0;
-        this.buttons[12 + j] = 0;
-      }
-    }
+    this.buttons[12] = controller.axes[7].valueOf() <= -0.15 ? 1 : 0;
+    this.buttons[13] = controller.axes[7].valueOf() >= 0.15 ? 1 : 0;
+    this.buttons[14] = controller.axes[6].valueOf() <= -0.15 ? 1 : 0;
+    this.buttons[15] = controller.axes[6].valueOf() >= 0.15 ? 1 : 0;
 
     let i = 0;
 
