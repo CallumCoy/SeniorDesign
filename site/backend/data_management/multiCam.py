@@ -143,7 +143,8 @@ class MultiCam(object):
         return mainImage
 
     def capture(self, img):
-        cv2.imwrite('temp/tag{}.jpg'.format(self.tagCount), img)
+        cv2.imwrite(
+            '/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/tag{}.jpg'.format(self.tagCount), img)
 
         timerCapture = time.time() - self.recordTime
 
@@ -157,11 +158,12 @@ class MultiCam(object):
     def startRecording(self):
         print("starting up recording")
 
-        cv2.imwrite('temp/imageFront.jpg', self.generateFinalImage())
+        cv2.imwrite('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/imageFront.jpg',
+                    self.generateFinalImage())
         fourcc = cv2.VideoWriter_fourcc(*'avc1')
-        self.record = cv2.VideoWriter('temp/outputtedVideo.mp4',
+        self.record = cv2.VideoWriter('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/outputtedVideo.mp4',
                                       fourcc,
-                                      int(os.environ.get("FPS")),
+                                      int(os.environ.get("FPS"))/2,
                                       (self.width, self.height))
         self.recording = True
 

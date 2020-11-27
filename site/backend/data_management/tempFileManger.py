@@ -4,7 +4,7 @@
 import os
 import glob
 
-TARGETPATH = "../../frontend/dist/site/assets/Data"
+TARGETPATH = "/home/sewerbot/repo/SeniorDesign/site/frontend/dist/site/assets/Data"
 
 
 def moveFiles(pipeID, dateTaken):
@@ -24,19 +24,19 @@ def moveFiles(pipeID, dateTaken):
             "failed to make directories {}/{}/{}/tags".format(TARGETPATH, pipeID, dateTaken))
 
     try:
-        os.rename("temp/imageFront.jpg",
+        os.rename("/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/imageFront.jpg",
                   "{}/{}/{}/imageFront.jpg".format(TARGETPATH, pipeID, dateTaken))
     except:
         print(
             "Error renaming: {}/{}/{}/imageFront.jpg".format(TARGETPATH, pipeID, dateTaken))
 
     try:
-        os.rename("temp/outputtedVideo.mp4",
+        os.rename("/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/outputtedVideo.mp4",
                   "{}/{}/{}/outputtedVideo.mp4".format(TARGETPATH, pipeID, dateTaken))
     except:
         print("Error renaming: {}/{}/{}/outputtedVideo.mp4".format(TARGETPATH, pipeID, dateTaken))
 
-    files = glob.glob("temp/tag*.jpg")
+    files = glob.glob("/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/tag*.jpg")
     for target in files:
         try:
             os.rename(target, ("{}/{}/{}/tags/{}".format(TARGETPATH,
@@ -47,21 +47,21 @@ def moveFiles(pipeID, dateTaken):
 
 def clearAll():
     """clears all files in the temp folder"""
-    files = glob.glob('temp/*')
+    files = glob.glob('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/*')
     remove(files)
 
 
 def clearTagImages():
     """clears all tag images in the temp folder"""
-    files = glob.glob('temp/temp/tag*.jpg')
+    files = glob.glob('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/tag*.jpg')
     remove(files)
 
 
 def clearVideo():
     """clears all video files in the temp folder"""
-    files = glob.glob('temp/outputtedVideo.mp4')
+    files = glob.glob('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/outputtedVideo.mp4')
     remove(files)
-    files = glob.glob('temp/imageFront.jpg')
+    files = glob.glob('/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/imageFront.jpg')
     remove(files)
 
 

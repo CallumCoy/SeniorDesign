@@ -4,7 +4,7 @@
 import os
 import glob
 
-TARGETPATH = "../../frontend/dist/site/assets/Data"
+TARGETPATH = "/home/sewerbot/repo/SeniorDesign/site/frontend/dist/site/assets/Data"
 
 
 def removeRun(pipeID, date):

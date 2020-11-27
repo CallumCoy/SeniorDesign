@@ -151,7 +151,7 @@ def getCams():
 
         image = CAMERA.generateFinalImage()
 
-        if CAMERA.recording and time.time() - lastSave > int(os.environ.get("FPS"))/20:
+        if CAMERA.recording and time.time() - lastSave > 1/int(os.environ.get("FPS")):
             socketio.start_background_task(
                 CAMERA.writeVid, image)
             lastSave = time.time()

@@ -20,7 +20,7 @@ bp = Blueprint('export', __name__, url_prefix='/export')
 
 CORS(bp)
 
-TMPLOC = "temp/"
+TMPLOC = "/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/"
 
 
 @bp.route('/tag/<target>')
@@ -58,7 +58,7 @@ def exportTag(target):
     sfw.close()
 
     try:
-        return send_from_directory("temp/", filename="coord.shp", as_attachment=True)
+        return send_from_directory("/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/", filename="coord.shp", as_attachment=True)
     except:
         print("unable to send .shp file")
         return ("unable to send file")
@@ -70,7 +70,7 @@ def exportTag(target):
 def exportFolder(path):
     global TMPLOC
 
-    remove(glob.glob('temp/*.zip'))
+    remove(glob.glob('{}*.zip'.format(TMPLOC)))
 
     # [0] = pipe ID, [1] = date/time taken
     parsedTarget = path.split('!')
@@ -81,18 +81,18 @@ def exportFolder(path):
     print(parsedTarget)
 
     fileName = "{}_{}_Data".format(pipeID, date)
-    directory = "../../frontend/dist/site/assets/Data/{}/".format(
+    directory = "/home/sewerbot/repo/SeniorDesign/site/frontend/dist/site/assets/Data/{}/".format(
         pipeID)
 
     try:
-        shutil.make_archive("temp/{}".format(fileName), 'zip',
+        shutil.make_archive("{}{}".format(TMPLOC, fileName), 'zip',
                             directory, date)
     except:
         print("Failed to make zip")
         return ("unable to make file")
 
     try:
-        return send_from_directory("temp/", filename='{}.zip'.format(fileName), as_attachment=True)
+        return send_from_directory(TMPLOC, filename='{}.zip'.format(fileName), as_attachment=True)
     except:
         print("Failed to send zip")
         return ("unable to send file")
@@ -109,7 +109,7 @@ def exportImage(path):
     date = parsedTarget[1]
     tagNum = parsedTarget[2]
 
-    directory = "../../frontend/dist/site/assets/Data/{}/{}/tags/".format(
+    directory = "/home/sewerbot/repo/SeniorDesign/site/frontend/dist/site/assets/Data/{}/{}/tags/".format(
         pipeID, date)
     target = 'tag' + tagNum + '.jpg'
 
