@@ -10,7 +10,7 @@
               <img
                 class="maxWidth"
                 src="{{ run | makeDirectory: 'imageFront.jpg' }}"
-                alt="Image not found."
+                alt="No Stream."
               />
             </a>
           </div>
@@ -61,8 +61,12 @@
         <div *ngFor="let tag of run.tags">
           <pre>
 Tagged Location {{ tag.Position }}
-Lat: {{ tag.Lat }}       Long: {{ tag.Longi }}
-Dist: {{ tag.Distance }}ft     Time: {{ tag.VideoTime }}</pre
+Lat: {{ tag.Lat | number: "1.0-8" }}       Long: {{
+              tag.Longi | number: "1.0-8"
+            }}
+Dist: {{ tag.Distance | number: "1.0-8" }}ft     Time: {{
+              tag.VideoTime
+            }}sec</pre
           >
           <div class="linkHolder">
             <a
