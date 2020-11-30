@@ -39,11 +39,22 @@ export class ControlsComponent implements OnInit {
               this.socketEmit('eBrake');
             } else if (action === 'capture') {
               this.caputerImage();
+            } else if (action === 'toggleRun') {
+              if (event.altKey) {
+                if (this.toggled) {
+                  this.socketEmit('stopMotors', 'straight');
+                  console.log('stopping');
+                } else {
+                  this.onClickD(action);
+                  console.log('running');
+                }
+              }
+              this.toggled = !this.toggled;
             } else {
               this.onClickD(action);
             }
           } catch {
-            console.log("doesn't exist");
+            //this just means a none control key was pressed
           }
         }
       }
@@ -64,14 +75,15 @@ export class ControlsComponent implements OnInit {
         action.includes('speed') ||
         action === 'capture' ||
         action === 'eBrake' ||
-        action === 'centerCam'
+        action === 'centerCam' ||
+        action === 'toggleRun'
       ) {
         return;
       } else if (action) {
         this.onClickR(action);
       }
     } catch {
-      console.log("doesn't exist");
+      //this just means a none control key was pressed
     }
   }
 
@@ -101,7 +113,8 @@ export class ControlsComponent implements OnInit {
   gamepads: Gamepad[] = [];
   controllers: Controller[] = [];
   prevControllers: Controller[] = [];
-  slider: number = 50;
+  slider: number = 70;
+  toggled = false;
 
   constructor(
     private socket: Socket,
@@ -234,7 +247,33 @@ export class ControlsComponent implements OnInit {
           this.prevControllers[index].buttons[11] &&
         this.controllers[index].buttons[11]
       ) {
-        this.streamService.refocus();
+        this.socketEmit('centerCam');
+      }
+
+      if (
+        this.controllers[index].buttons[0] !==
+          this.prevControllers[index].buttons[0] &&
+        this.controllers[index].buttons[0]
+      ) {
+        this.socketEmit('eBrake');
+      }
+
+      if (
+        this.controllers[index].buttons[2] !==
+          this.prevControllers[index].buttons[2] &&
+        this.controllers[index].buttons[2] &&
+        this.slider >= 5
+      ) {
+        this.slider -= 5;
+      }
+
+      if (
+        this.controllers[index].buttons[3] !==
+          this.prevControllers[index].buttons[3] &&
+        this.controllers[index].buttons[3] &&
+        this.slider <= 95
+      ) {
+        this.slider += 5;
       }
 
       if (
@@ -253,8 +292,6 @@ export class ControlsComponent implements OnInit {
       let movementChange: boolean = false;
 
       for (let i: number = 12; i <= 15; i++) {
-        console.log(i);
-        console.log(this.controllers[index].buttons[i]);
         if (
           this.controllers[index].buttons[i] !=
           this.prevControllers[index].buttons[i]
@@ -360,7 +397,6 @@ export class ControlsComponent implements OnInit {
       this.socket.emit(channel, command);
     } else if (channel === 'stopCam') {
       this.socket.emit(channel, command);
-      console.log('stopCam');
     } else if (channel === 'speed') {
       this.socket.emit(channel, this.slider / 100); //does it really need this info
     } else if (command) {
@@ -389,5 +425,6 @@ export class ControlsComponent implements OnInit {
     f: 'speedDown',
     c: 'centerCam',
     ' ': 'eBrake',
+    p: 'toggleRun',
   });
 }
