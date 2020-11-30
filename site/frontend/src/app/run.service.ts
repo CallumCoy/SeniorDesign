@@ -124,8 +124,6 @@ export class RunService {
       type = 1;
     }
 
-    console.log(runToAdd);
-
     return this.http
       .post<Run>(`http://${API_URL}/save/newRun`, runToAdd, this.httpOptions)
       .pipe(
@@ -139,7 +137,6 @@ export class RunService {
 
   updateRun(): Observable<any> {
     const index = this.getRunIndex(this.editRun.getValue().Id, this.index);
-    console.log(Boolean(this.editRun.getValue().Name));
     if (this.index > 0) {
       if (this.index === 1 && !this.editRun.getValue().Name) {
         this.allRunsData[this.index].splice(index, 1);
@@ -214,9 +211,7 @@ export class RunService {
     return this.http
       .post<any>(`http://${API_URL}/stream/check`, this.httpOptions)
       .pipe(
-        tap(() => {
-          console.log('notifying backend');
-        }),
+        tap(() => {}),
         catchError(this.handleError<Run>())
       );
   }

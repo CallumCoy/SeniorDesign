@@ -34,7 +34,6 @@ export class StreamService {
   captureReturn() {
     return new Observable((observer: Observer<any>) => {
       this.socket.on('addTag', (data) => {
-        console.log(data);
         observer.next(data);
       });
     });
