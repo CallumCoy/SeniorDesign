@@ -151,8 +151,6 @@ class MultiCam(object):
         # location Request
         # send frontend details
 
-        self.tagCount += 1
-
         return (self.tagCount, roboto.lat, roboto.long, roboto.distanceTracking, timerCapture)
 
     def startRecording(self):

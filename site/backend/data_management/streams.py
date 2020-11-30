@@ -165,6 +165,7 @@ def getCams():
                                          "Longi": longi,
                                          "Distance": dist,
                                          "VideoTime": timerCapture}))
+            roboto.tagCount += 1
         elif CAPTURE:
             CAPTURE = False
 
