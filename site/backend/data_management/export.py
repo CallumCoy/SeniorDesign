@@ -58,7 +58,7 @@ def exportTag(target):
     sfw.close()
 
     try:
-        return send_from_directory("/home/sewerbot/repo/SeniorDesign/site/backend/data_management/temp/", filename="coord.shp", as_attachment=True)
+        return send_from_directory(TMPLOC, filename="coord.shp", as_attachment=True)
     except:
         print("unable to send .shp file")
         return ("unable to send file")
@@ -89,13 +89,13 @@ def exportFolder(path):
                             directory, date)
     except:
         print("Failed to make zip")
-        return ("unable to make file")
+        return ("unable to make file at {}{}".format(TMPLOC, fileName))
 
     try:
         return send_from_directory(TMPLOC, filename='{}.zip'.format(fileName), as_attachment=True)
     except:
         print("Failed to send zip")
-        return ("unable to send file")
+        return ("unable to send file {}{}.zip".format(fileName, fileName))
 
 
 @ bp.route('/image/<path>')
@@ -113,11 +113,8 @@ def exportImage(path):
         pipeID, date)
     target = 'tag' + tagNum + '.jpg'
 
-    print(directory)
-    print(target)
-
     try:
         return send_from_directory(directory, filename=target, as_attachment=True)
     except:
         print("failed to send Image")
-        return ("unable to send file")
+        return ("unable to send file {}{}".format(directory, target))
