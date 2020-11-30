@@ -23,22 +23,17 @@ def centerCam():
 
 @socketio.on('binary')
 def binary(value):
-    print("value")
-    print(value)
-    if value == 1:
-        socketio.start_background_task(roboto.binary.stop)
-        print("binary pressed")
-    else:
+    if value == 1 or value == '1':
         socketio.start_background_task(roboto.binary.on, value)
         print("binary released")
+    else:
+        socketio.start_background_task(roboto.binary.stop)
+        print("binary pressed")
 
 
 @socketio.on('stop')
 def stop():
-    socketio.start_background_task(roboto.stop)
-
-    socketio.start_background_task(roboto.botServo.rest)
-    socketio.start_background_task(roboto.topServo.rest)
+    socketio.start_background_task(roboto.stopMotor)
 
 
 @socketio.on('stopCam')
