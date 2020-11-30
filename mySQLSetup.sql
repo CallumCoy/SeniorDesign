@@ -9,8 +9,8 @@ CREATE TABLE TaggedLocs(
   Id int unsigned not null auto_increment,
   Position smallint not null,
   Longi smallint not null,
-  Lat smallint not null,
-  VideoTime smallint not null,
+  Lat FLOAT(23) not null,
+  VideoTime FLOAT(23) not null,
 
   UNIQUE(Id, Position),
 
@@ -32,7 +32,7 @@ CREATE TABLE Video (
   DateTaken datetime not null,
   DriverName varchar(32),
   PipeID varchar(128) ,
-  Direction varchar(8),
+  Direction FLOAT(23),
   
   primary key (Id),
 
