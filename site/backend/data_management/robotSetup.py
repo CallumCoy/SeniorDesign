@@ -100,7 +100,7 @@ class Robot:
         self.topServo = Servo(self.topServoMin, self.topServoRest, self.topServoMax,
                               self.topServoPos, self.servoAddress, self.servoBusNum, self.servofrequency)
 
-        self.stop()
+        self.stopMotor()
 
         GPIO.output(self. safeNumber, GPIO.LOW)
 
@@ -140,12 +140,6 @@ class Robot:
             self.botServo.goto(value)
         else:
             self.topServo.goto(value)
-
-    def stop(self):
-        self.rightMotor.stop()
-        self.leftMotor.stop()
-
-        GPIO.output(self.safeNumber, GPIO.HIGH)
 
     def releaseStop(self):
         GPIO.output(self.safeNumber, GPIO.LOW)
