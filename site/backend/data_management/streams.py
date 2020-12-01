@@ -113,6 +113,7 @@ def startRecording(bearing, lat, longi, record):
         roboto.lat = lat
         roboto.long = longi
         roboto.bearing = bearing
+        roboto.distanceTracking = 0
 
 
 @socketio.on('endRecording')
