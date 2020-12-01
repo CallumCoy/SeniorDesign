@@ -8,6 +8,7 @@
 
 import eventlet
 import time
+import math
 import cv2
 import os
 from dotenv import load_dotenv
@@ -139,6 +140,46 @@ class MultiCam(object):
 
         mainImage[self.yOffset: self.yOffset + self.yDim,
                   self.xOffset: self.xOffset + self.xDim] = smallFrame
+
+        # Arrow for direction
+
+        baseHeight = 150
+        baseWidth = 10
+
+        arrowLength = 100
+        thickness = 2
+        colour = (0, 0, 255)
+
+        startPoint = (self.width - baseHeight, self.height - baseWidth)
+
+        if roboto.camPos == 0:
+            endPoint = (self.width - baseHeight, self.height -
+                        (arrowLength + baseWidth))
+        else:
+            xEndpoint = (arrowLength / math.cos(abs(roboto.camPos)))
+            yEndpoint = (arrowLength / math.sin(abs(roboto.camPos)))
+
+            if roboto.camPos < 0:
+                endPoint = (self.width - (baseHeight + xEndpoint),
+                            self.height - (yEndpoint + baseWidth))
+            else:
+                endPoint = (self.width - (baseHeight - xEndpoint),
+                            self.height - (yEndpoint + baseWidth))
+
+        mainImage = cv2.arrowedLine(
+            mainImage, startPoint, endPoint, colour, thickness)
+
+        # adding run location
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 1
+        text = str(roboto.distanceTracking) + 'ft'
+
+        leftGap = 10
+        bottomGap = 10
+
+        cv2.putText(mainImage, text, (leftGap, self.width - bottomGap),
+                    font, fontScale, colour, thickness, cv2.LINE_AA)
 
         return mainImage
 
